@@ -1,0 +1,4 @@
+#include "Release.xcconfig"
+PRODUCT_BUNDLE_IDENTIFIER = com.example.talentpitchTest.qa
+PRODUCT_NAME = TalentPitch QA
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon

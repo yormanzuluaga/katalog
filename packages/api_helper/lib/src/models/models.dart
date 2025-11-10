@@ -1,0 +1,10 @@
+export 'video/video_model.dart';
+export 'auth/auth_model.dart';
+export 'user/user_model.dart';
+export 'category/category_model.dart';
+export 'talent/talent_model.dart';
+export 'category/product_cart_model.dart';
+export 'category/sub_category_model.dart';
+export 'category/product_model.dart';
+export 'address/address_model.dart';
+export 'address/address_user_model.dart';

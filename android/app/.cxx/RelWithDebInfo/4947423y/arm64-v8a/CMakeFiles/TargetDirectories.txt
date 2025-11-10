@@ -1,0 +1,2 @@
+/Users/yormangomez/Desktop/desarrollador/flutter/emprender/talentpitch_test-main/android/app/.cxx/RelWithDebInfo/4947423y/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/yormangomez/Desktop/desarrollador/flutter/emprender/talentpitch_test-main/android/app/.cxx/RelWithDebInfo/4947423y/arm64-v8a/CMakeFiles/rebuild_cache.dir

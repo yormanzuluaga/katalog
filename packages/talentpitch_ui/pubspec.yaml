@@ -1,0 +1,33 @@
+name: talentpitch_ui
+description: "A new Flutter package project."
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ^3.6.1
+  flutter: ">=1.17.0"
+
+dependencies:
+  drop_down_search_field: ^1.0.4
+  expandable_page_view: ^1.0.17
+  flutter:
+    sdk: flutter
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  intl: ^0.20.2
+  phosphor_flutter: ^2.1.0
+  path_drawing: ^1.0.1
+  url_launcher: ^6.3.0
+  sidebarx: ^0.17.1
+  font_awesome_flutter: ^10.8.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.11
+  flutter_gen_runner: ^5.5.0+1
+
+
+flutter:

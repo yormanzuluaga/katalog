@@ -1,0 +1,1 @@
+/Users/yormangomez/Desktop/desarrollador/flutter/emprender/talentpitch_test-main/build/app/intermediates/cxx/RelWithDebInfo/4947423y/obj/arm64-v8a

@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "dart-code.flutter",
+        "dart-code.dart-code",
+        "alexisvt.flutter-snippets",
+        "nash.awesome-flutter-snippets",
+        "felixangelov.bloc",
+        "luanpotter.dart-import",
+        "robert-brunhage.flutter-riverpod-snippets",
+        "usernamehw.errorlens",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-json"
+    ]
+}

@@ -1,0 +1,4 @@
+#include "Debug.xcconfig"
+PRODUCT_BUNDLE_IDENTIFIER = com.example.talentpitchTest
+PRODUCT_NAME = TalentPitch
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon

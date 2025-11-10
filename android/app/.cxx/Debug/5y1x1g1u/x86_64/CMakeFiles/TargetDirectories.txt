@@ -1,0 +1,2 @@
+/Users/yormangomez/Desktop/desarrollador/flutter/emprender/talentpitch_test-main/android/app/.cxx/Debug/5y1x1g1u/x86_64/CMakeFiles/edit_cache.dir
+/Users/yormangomez/Desktop/desarrollador/flutter/emprender/talentpitch_test-main/android/app/.cxx/Debug/5y1x1g1u/x86_64/CMakeFiles/rebuild_cache.dir

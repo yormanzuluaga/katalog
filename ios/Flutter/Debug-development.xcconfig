@@ -1,0 +1,5 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug-development.xcconfig"
+#include "Debug.xcconfig"
+PRODUCT_BUNDLE_IDENTIFIER = com.example.talentpitchTest.dev
+PRODUCT_NAME = TalentPitch Dev
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
