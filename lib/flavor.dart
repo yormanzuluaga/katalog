@@ -1,5 +1,3 @@
-import 'package:phone_form_field/phone_form_field.dart';
-
 enum FlavorType {
   dev,
   stg,
@@ -65,29 +63,29 @@ class Flavor {
     }
   }
 
-  List<IsoCode> get countries {
+  List<String> get countries {
     switch (_flavor) {
       case FlavorType.dev:
         return [
-          IsoCode.CO,
-          IsoCode.MX,
-          IsoCode.EC,
-          IsoCode.PE,
-          IsoCode.AR,
-          IsoCode.CR,
+          'CO', // Colombia
+          'MX', // Mexico
+          'EC', // Ecuador
+          'PE', // Peru
+          'AR', // Argentina
+          'CR', // Costa Rica
         ];
       case FlavorType.stg:
         return [
-          IsoCode.CO,
-          IsoCode.MX,
-          IsoCode.EC,
-          IsoCode.PE,
-          IsoCode.AR,
-          IsoCode.CR,
+          'CO', // Colombia
+          'MX', // Mexico
+          'EC', // Ecuador
+          'PE', // Peru
+          'AR', // Argentina
+          'CR', // Costa Rica
         ];
       case FlavorType.prd:
         return [
-          IsoCode.CO,
+          'CO', // Colombia
         ];
     }
   }

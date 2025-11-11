@@ -1,0 +1,1 @@
+ /Users/yormangomez/Desktop/desarrollador/catalogo/katalog/.dart_tool/flutter_build/7f40745bb04631357f8d384f3e802c66/native_assets.json: 

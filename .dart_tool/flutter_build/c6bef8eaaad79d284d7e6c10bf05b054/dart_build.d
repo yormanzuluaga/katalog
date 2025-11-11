@@ -1,0 +1,1 @@
+ /Users/yormangomez/Desktop/desarrollador/catalogo/katalog/.dart_tool/flutter_build/c6bef8eaaad79d284d7e6c10bf05b054/dart_build_result.json: 

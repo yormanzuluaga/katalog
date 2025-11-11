@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:phone_form_field/phone_form_field.dart';
 import 'package:talentpitch_test/feature/auth/bloc/auth/auth_bloc.dart';
-import 'package:talentpitch_test/flavor.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class ApLoginInfor extends StatefulWidget {
@@ -14,12 +13,25 @@ class ApLoginInfor extends StatefulWidget {
 
 class ApLoginInforState extends State<ApLoginInfor> {
   late String numberPhone = '';
-  late String country = '';
+  late String country = '57'; // Default to Colombia
 
   bool enableButton = false;
   bool enableError = false;
-
   bool isNum = false;
+
+  final TextEditingController _phoneController = TextEditingController();
+  final List<Map<String, String>> _countries = [
+    {'code': '57', 'name': 'Colombia', 'flag': '🇨🇴'},
+    {'code': '52', 'name': 'México', 'flag': '🇲🇽'},
+    {'code': '593', 'name': 'Ecuador', 'flag': '🇪🇨'},
+    {'code': '506', 'name': 'Costa Rica', 'flag': '🇨🇷'},
+  ];
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,92 +111,123 @@ class ApLoginInforState extends State<ApLoginInfor> {
                   SizedBox(height: 64),
                   SizedBox(
                     width: double.infinity,
-                    child: PhoneFormField(
-                      initialValue: PhoneNumber.parse('+57'),
-                      cursorColor: AppColors.secondaryDark,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w300,
-                        fontSize: 16,
-                        color: AppColors.secondaryDark,
-                      ),
-                      autofillHints: const [AutofillHints.telephoneNumber],
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      decoration: InputDecoration(
-                        hintText: '123 456 789',
-                        filled: true,
-                        fillColor: AppColors.gray100.withOpacity(0.1),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 12,
+                    child: Row(
+                      children: [
+                        // Country selector dropdown
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.black),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: country,
+                              items: _countries
+                                  .map((c) => DropdownMenuItem<String>(
+                                        value: c['code']!,
+                                        child: Text('${c['flag']} +${c['code']}'),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  country = value!;
+                                });
+                              },
+                            ),
+                          ),
                         ),
-                        hintStyle: const TextStyle(
-                          fontWeight: FontWeight.w300,
-                          fontSize: 16,
-                          color: AppColors.gray100,
+                        const SizedBox(width: 12),
+                        // Phone input field
+                        Expanded(
+                          child: TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            cursorColor: AppColors.secondaryDark,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w300,
+                              fontSize: 16,
+                              color: AppColors.secondaryDark,
+                            ),
+                            autofillHints: const [AutofillHints.telephoneNumber],
+                            decoration: InputDecoration(
+                              hintText: '123 456 789',
+                              filled: true,
+                              fillColor: AppColors.gray100.withOpacity(0.1),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 12,
+                              ),
+                              hintStyle: const TextStyle(
+                                fontWeight: FontWeight.w300,
+                                fontSize: 16,
+                                color: AppColors.gray100,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppColors.black),
+                              ),
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppColors.black),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: Colors.red),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppColors.primaryMain),
+                              ),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppColors.primaryMain),
+                              ),
+                              errorStyle: const TextStyle(
+                                fontWeight: FontWeight.w300,
+                                fontSize: 14,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Número de teléfono es requerido";
+                              }
+                              if (value.length < 7) {
+                                return "Número de teléfono no válido";
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                numberPhone = value;
+                                // Validate phone length based on country
+                                int requiredLength;
+                                switch (country) {
+                                  case '57': // Colombia
+                                  case '52': // Mexico
+                                    requiredLength = 10;
+                                    break;
+                                  case '506': // Costa Rica
+                                    requiredLength = 8;
+                                    break;
+                                  case '593': // Ecuador
+                                    requiredLength = 9;
+                                    break;
+                                  default:
+                                    requiredLength = 8;
+                                }
+
+                                if (value.length == requiredLength) {
+                                  FocusScope.of(context).unfocus();
+                                }
+                              });
+                            },
+                          ),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.black),
-                        ),
-                        disabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.black),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: Colors.red),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.primaryMain),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppColors.primaryMain),
-                        ),
-                        errorStyle: const TextStyle(
-                          fontWeight: FontWeight.w300,
-                          fontSize: 14,
-                        ),
-                      ),
-                      validator: (phoneNumber) {
-                        if (phoneNumber == null || !phoneNumber.isValid()) {
-                          return "Número de teléfono móvil no es válido";
-                        }
-                        return null;
-                      },
-                      autofocus: false,
-                      enableInteractiveSelection: false,
-                      countrySelectorNavigator: CountrySelectorNavigator.draggableBottomSheet(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(24),
-                          topRight: Radius.circular(24),
-                        ),
-                        countries: Flavor.instance.countries,
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          if (value.isValid()) {
-                            if (value.nsn.length == 10 && '57' == value.countryCode) {
-                              FocusScope.of(context).unfocus();
-                              numberPhone = value.nsn;
-                              country = value.countryCode;
-                            } else if (value.nsn.length == 8 && '506' == value.countryCode) {
-                              FocusScope.of(context).unfocus();
-                              numberPhone = value.nsn;
-                              country = value.countryCode;
-                            } else if (value.nsn.length == 9 && '593' == value.countryCode) {
-                              FocusScope.of(context).unfocus();
-                              numberPhone = value.nsn;
-                              country = value.countryCode;
-                            } else if (value.nsn.length == 10 && '52' == value.countryCode) {
-                              FocusScope.of(context).unfocus();
-                              numberPhone = value.nsn;
-                              country = value.countryCode;
-                            }
-                          }
-                        });
-                      },
+                      ],
                     ),
                   ),
                   SizedBox(height: 20),
