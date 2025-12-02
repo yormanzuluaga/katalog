@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/cart/bloc/address/address_bloc.dart';
+import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class AddressSelectionScreen extends StatefulWidget {
@@ -448,6 +449,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   void _continueWithSelectedAddress(Address address) {
+    // Obtener los items del carrito
+    final cartState = context.read<CartBloc>().state;
+    final cartItems = cartState.listSale ?? [];
+
+    print('🛒 Items del carrito para transacción: ${cartItems.length}');
+
     // Continuar al proceso de pago con Wompi
     context.push(RoutesNames.wompiPayment, extra: {
       'selectedAddress': address,
@@ -456,6 +463,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
       'customerEmail': 'customer@example.com', // TODO: obtener del usuario loggeado
       'customerName': 'Cliente', // TODO: obtener del usuario loggeado
       'customerPhone': '3001234567', // TODO: obtener del usuario loggeado
+      'shippingAddressId': address.id ?? '',
+      'cartItems': cartItems,
     });
   }
 

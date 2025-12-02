@@ -13,62 +13,78 @@ class ProductMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Column(
-        children: [
-          const AppSearch(),
-          const SizedBox(height: 16),
-          const CarouserProduct(),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Categorías',
-                  style: APTextStyle.textMD.bold.copyWith(color: AppColors.primaryMain),
-                ),
-                TextButton(
-                    onPressed: () {
-                      context.go(RoutesNames.productList);
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          'Ver todas las categorías',
-                          style: APTextStyle.textMD.bold.copyWith(color: AppColors.primaryMain),
-                        ),
-                        Icon(
-                          Icons.arrow_forward_ios_outlined,
-                          size: 20,
+    return BlocBuilder<CategoryBloc, CategoryState>(
+      builder: (context, state) {
+        final categoryCount = state.category?.category?.length ?? 0;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: const CarouserProduct(),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Categorías',
+                        style: APTextStyle.textMD.bold.copyWith(
                           color: AppColors.primaryMain,
-                        )
-                      ],
-                    ))
-              ],
-            ),
-          ),
-          BlocBuilder<CategoryBloc, CategoryState>(
-            builder: (context, state) {
-              return Flexible(
-                child: GridView.builder(
-                  itemCount: state.category?.category?.length ?? 0,
-                  physics: BouncingScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          context.go(RoutesNames.productList);
+                        },
+                        child: Row(
+                          children: [
+                            Text(
+                              'Ver todas las categorías',
+                              style: APTextStyle.textMD.bold.copyWith(
+                                color: AppColors.primaryMain,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios_outlined,
+                              size: 20,
+                              color: AppColors.primaryMain,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  itemBuilder: (context, index) {
+                ),
+              ),
+              SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 0.85,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (categoryCount == 0) return const SizedBox.shrink();
                     final category = state.category!.category![index];
                     return InkWell(
                       onTap: () {
                         if (category.isSubCatalogo ?? false) {
-                          context.read<CategoryBloc>().add(GetSubCategoryEvent(idCategory: category.id ?? ''));
+                          context.read<CategoryBloc>().add(
+                                GetSubCategoryEvent(
+                                    idCategory: category.id ?? ''),
+                              );
                           context.go(RoutesNames.subCategory);
                         } else {
-                          context.read<CategoryBloc>().add(GetProductEvent(idProduct: category.id ?? ''));
+                          context.read<CategoryBloc>().add(
+                                GetProductEvent(idProduct: category.id ?? ''),
+                              );
+                          context.go(RoutesNames.productList);
                         }
                       },
                       child: Column(
@@ -80,20 +96,50 @@ class ProductMobile extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primaryMain.withOpacity(.2),
+                                    color:
+                                        AppColors.primaryMain.withOpacity(.2),
                                     blurRadius: 5,
                                     offset: const Offset(0, 5),
-                                  )
+                                  ),
                                 ],
                               ),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
                                 child: Center(
-                                  child: FaIcon(
-                                    FontAwesomeIcons.boxOpen,
-                                    color: AppColors.primaryMain,
-                                    size: 32,
-                                  ),
+                                  child: (category.img != null &&
+                                          category.img!.isNotEmpty)
+                                      ? ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.network(
+                                            category.img!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return const FaIcon(
+                                                FontAwesomeIcons.boxOpen,
+                                                color: AppColors.primaryMain,
+                                                size: 32,
+                                              );
+                                            },
+                                            loadingBuilder: (context, child,
+                                                loadingProgress) {
+                                              if (loadingProgress == null)
+                                                return child;
+                                              return const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: AppColors.primaryMain,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      : const FaIcon(
+                                          FontAwesomeIcons.boxOpen,
+                                          color: AppColors.primaryMain,
+                                          size: 32,
+                                        ),
                                 ),
                               ),
                             ),
@@ -110,12 +156,49 @@ class ProductMobile extends StatelessWidget {
                       ),
                     );
                   },
+                  childCount: categoryCount,
                 ),
-              );
-            },
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Marcas',
+                        style: APTextStyle.textMD.bold.copyWith(
+                          color: AppColors.primaryMain,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          context.go(RoutesNames.productList);
+                        },
+                        child: Row(
+                          children: [
+                            Text(
+                              'Ver todas las categorías',
+                              style: APTextStyle.textMD.bold.copyWith(
+                                color: AppColors.primaryMain,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios_outlined,
+                              size: 20,
+                              color: AppColors.primaryMain,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

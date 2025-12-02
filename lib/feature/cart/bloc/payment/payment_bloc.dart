@@ -1,18 +1,28 @@
+import 'package:api_helper/api_helper.dart';
+import 'package:api_repository/api_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:talentpitch_test/app/bloc/app_bloc.dart';
+import 'package:talentpitch_test/app/routes/router_config.dart';
 import 'package:talentpitch_test/feature/cart/services/wompi_payment_service.dart';
 
 part 'payment_event.dart';
 part 'payment_state.dart';
 
 class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
-  PaymentBloc() : super(PaymentInitial()) {
+  PaymentBloc({
+    required TransactionsRepository transactionsRepository,
+  })  : _transactionsRepository = transactionsRepository,
+        super(PaymentInitial()) {
     on<InitializePayment>(_onInitializePayment);
     on<CreatePaymentTransaction>(_onCreatePaymentTransaction);
     on<CreatePaymentSource>(_onCreatePaymentSource);
     on<CheckTransactionStatus>(_onCheckTransactionStatus);
     on<LoadPSEBanks>(_onLoadPSEBanks);
+    on<SendTransactionToBackend>(_onSendTransactionToBackend);
   }
+
+  final TransactionsRepository _transactionsRepository;
 
   Future<void> _onInitializePayment(
     InitializePayment event,
@@ -131,5 +141,109 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     } catch (e) {
       emit(PaymentError('Error al cargar bancos PSE: ${e.toString()}'));
     }
+  }
+
+  Future<void> _onSendTransactionToBackend(
+    SendTransactionToBackend event,
+    Emitter<PaymentState> emit,
+  ) async {
+    emit(SendingTransactionToBackend());
+
+    try {
+      print('📤 BLoC: Enviando transacción al backend...');
+
+      // Construir los items de la transacción desde el carrito
+      final transactionItems = _buildTransactionItems(event.cartItems);
+
+      // Crear el modelo de transacción
+      final transaction = PaymentTransactionModel(
+        items: transactionItems,
+        shippingAddressId: event.shippingAddressId,
+        wompiTransactionId: event.wompiTransactionId,
+        wompiReference: event.wompiReference,
+        paymentStatus: event.paymentStatus.toLowerCase(),
+        customerEmail: event.customerEmail,
+        approvalCode: event.approvalCode,
+      );
+
+      print('📊 BLoC: Datos de transacción construidos:');
+      print('   Items: ${transaction.items.length}');
+      print('   Shipping Address ID: ${transaction.shippingAddressId}');
+      print('   Wompi Transaction ID: ${transaction.wompiTransactionId}');
+      print('   Payment Status: ${transaction.paymentStatus}');
+      final appState = rootNavigatorKey.currentContext!.read<AppBloc>().state;
+      // Enviar al backend usando el repositorio
+      final (error, success) = await _transactionsRepository.createTransaction(
+        transaction: transaction,
+        headers: appState.createHeaders(),
+      );
+
+      if (error != null) {
+        print('❌ BLoC: Error del backend: ${error.message}');
+        emit(TransactionBackendError(
+          message: 'Error al guardar la transacción: ${error.message}',
+          wompiTransactionId: event.wompiTransactionId,
+        ));
+        return;
+      }
+
+      if (success == true) {
+        print('✅ BLoC: Transacción guardada exitosamente en el backend');
+        emit(TransactionSentToBackend(
+          wompiTransactionId: event.wompiTransactionId,
+          wompiReference: event.wompiReference,
+        ));
+      } else {
+        print('⚠️ BLoC: Backend respondió con éxito=false');
+        emit(TransactionBackendError(
+          message: 'No se pudo guardar la transacción',
+          wompiTransactionId: event.wompiTransactionId,
+        ));
+      }
+    } catch (e) {
+      print('❌ BLoC: Excepción al enviar transacción al backend: $e');
+      emit(TransactionBackendError(
+        message: 'Error al procesar la transacción: ${e.toString()}',
+        wompiTransactionId: event.wompiTransactionId,
+      ));
+    }
+  }
+
+  List<TransactionItem> _buildTransactionItems(List<Product> cartItems) {
+    return cartItems.map((product) {
+      // Determinar el tipo de producto
+      final productType = (product.variants != null && product.variants!.isNotEmpty) ? 'variable' : 'simple';
+
+      // Construir variaciones si existen
+      ProductVariations? variations;
+      if (product.variants != null && product.variants!.isNotEmpty) {
+        final variant = product.variants!.first;
+
+        variations = ProductVariations(
+          color: variant.color != null
+              ? ColorVariation(
+                  name: variant.color!.name ?? '',
+                  code: variant.color!.code ?? '',
+                  image: null, // El modelo Colores no tiene campo de imagen
+                )
+              : null,
+          size: variant.size != null
+              ? SizeVariation(
+                  name: variant.size!,
+                  code: variant.size!,
+                )
+              : null,
+        );
+      }
+
+      return TransactionItem(
+        productId: product.id ?? '',
+        productType: productType,
+        quantity: product.quantity ?? 1,
+        unitPrice: product.pricing?.salePrice?.toDouble() ?? 0.0,
+        commission: product.pricing?.commission?.toDouble() ?? 0.0,
+        variations: variations,
+      );
+    }).toList();
   }
 }

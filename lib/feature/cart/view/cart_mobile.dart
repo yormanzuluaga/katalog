@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
+import 'package:talentpitch_test/feature/cart/widget/improved_cart_item.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class CartMobile extends StatefulWidget {
@@ -27,6 +28,33 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
     super.initState();
   }
 
+  String _calculateTotalProfit(CartState state) {
+    if (state.listSale == null || state.listSale!.isEmpty) {
+      return '0';
+    }
+
+    double totalProfit = 0;
+    for (var product in state.listSale!) {
+      final costPrice = product.pricing?.commission?.toDouble() ?? 0.0;
+      final quantity = product.quantity ?? 1;
+      final profit = (costPrice) * quantity;
+      totalProfit += profit;
+    }
+
+    return addDotsToNumber(totalProfit.toInt());
+  }
+
+  int _calculateFinalTotal(CartState state) {
+    if (state.listSale == null || state.listSale!.isEmpty) {
+      return 0;
+    }
+
+    final subtotal = int.parse(double.parse(state.sumTotal).toStringAsFixed(0));
+    final shippingCost = subtotal >= 100000 ? 0 : 15000;
+
+    return subtotal + shippingCost;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -39,32 +67,22 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
               Expanded(
                 child: Column(
                   children: [
-                    Text(
-                      'Venta en curso',
-                      style: APTextStyle.textXS.bold.copyWith(
-                        color: AppColors.primaryMain,
-                        fontSize: 24,
-                      ),
-                    ),
-                    Text(
-                      state.listSale != null && state.listSale!.isNotEmpty
-                          ? 'Productos: ${state.listSale!.length}'
-                          : 'No hay productos',
-                      style: APTextStyle.textSM.medium.copyWith(
-                        color: AppColors.gray80,
-                        fontSize: 14,
-                      ),
-                    ),
-                    SizedBox(height: 16),
+                    // Text(
+                    //   state.listSale != null && state.listSale!.isNotEmpty
+                    //       ? 'Productos: ${state.listSale!.length}'
+                    //       : 'No hay productos',
+                    //   style: APTextStyle.textSM.medium.copyWith(
+                    //     color: AppColors.gray80,
+                    //     fontSize: 14,
+                    //   ),
+                    // ),
+                    //SizedBox(height: 16),
                     Flexible(
                       child: state.listSale != null && state.listSale!.isNotEmpty
-                          ? ListView.separated(
+                          ? ListView.builder(
                               padding: const EdgeInsets.all(0.0),
                               physics: const BouncingScrollPhysics(),
                               shrinkWrap: true,
-                              separatorBuilder: (context, index) => SizedBox(
-                                height: MediaQuery.of(context).size.height / 72,
-                              ),
                               itemCount: state.listSale!.length,
                               itemBuilder: (context, index) {
                                 final data = state.listSale![index];
@@ -94,99 +112,27 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                                   }
                                 }
 
-                                return AppCardProduct.cardHorizontal(
+                                return ImprovedCartItem(
                                   title: data.name ?? 'Producto',
-                                  subTitle: data.brand?.name ?? '',
-                                  price: '${data.pricing?.salePrice ?? '0'}',
-                                  subSales: variantInfo.isNotEmpty ? variantInfo : null,
-                                  sale: '${data.pricing?.costPrice ?? '0'}',
-                                  height: MediaQuery.of(context).size.height / 9,
-                                  subWidth: MediaQuery.of(context).size.width / 4,
-                                  width: MediaQuery.of(context).size.height / 10,
+                                  subtitle: data.brand?.name ?? '',
+                                  variantInfo: variantInfo.isNotEmpty ? variantInfo : null,
+                                  imageUrl: data.img,
+                                  price: data.pricing?.salePrice?.toDouble() ?? 0.0,
+                                  costPrice: data.pricing?.commission?.toDouble() ?? 0.0,
                                   quantity: data.quantity ?? 1,
-                                  onClosed: () {
+                                  onRemove: () {
                                     context.read<CartBloc>().add(
                                           DeletedCartEvent(id: data.id ?? ''),
                                         );
                                   },
-                                  onChange: (value) {},
-                                  widgetCounter: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: AppColors.whitePure,
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: AppColors.whitePure,
-                                            borderRadius: BorderRadius.circular(16),
+                                  onQuantityChanged: (newQuantity) {
+                                    context.read<CartBloc>().add(
+                                          CountCartEvent(
+                                            id: data.id ?? '',
+                                            quantity: newQuantity,
                                           ),
-                                          child: Row(
-                                            children: [
-                                              GestureDetector(
-                                                onTap: data.quantity! > 1
-                                                    ? () {
-                                                        context.read<CartBloc>().add(
-                                                              CountCartEvent(
-                                                                id: data.id ?? '',
-                                                                quantity: data.quantity! - 1,
-                                                              ),
-                                                            );
-                                                      }
-                                                    : null,
-                                                child: Container(
-                                                    padding: const EdgeInsets.symmetric(
-                                                      vertical: 4,
-                                                      horizontal: 3,
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.remove,
-                                                      color: AppColors.primaryMain,
-                                                      size: 27,
-                                                    )),
-                                              ),
-                                              Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: MediaQuery.of(context).size.width / 26,
-                                                ),
-                                                child: AppAnimatedCounter(
-                                                  duration: const Duration(milliseconds: 200),
-                                                  value: data.quantity ?? 1,
-                                                  textStyle: APTextStyle.textXL.bold.copyWith(
-                                                    color: AppColors.primaryMain,
-                                                  ),
-                                                ),
-                                              ),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  context.read<CartBloc>().add(
-                                                        CountCartEvent(
-                                                          id: data.id ?? '',
-                                                          quantity: data.quantity! + 1,
-                                                        ),
-                                                      );
-                                                },
-                                                child: Container(
-                                                  color: Colors.transparent,
-                                                  padding: const EdgeInsets.symmetric(
-                                                    vertical: 4,
-                                                    horizontal: 3,
-                                                  ),
-                                                  child: const Icon(
-                                                    Icons.add,
-                                                    color: AppColors.primaryMain,
-                                                    size: 27,
-                                                  ),
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                        );
+                                  },
                                 );
                               },
                             )
@@ -216,58 +162,145 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
               ),
               Column(
                 children: [
+                  // Resumen de ganancias y total
                   Container(
-                    height: 64,
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary.shade300,
+                      gradient: LinearGradient(
+                        colors: [Colors.green.shade50, Colors.green.shade100],
+                      ),
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.green.shade300,
+                        width: 1.5,
+                      ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
                       children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 18),
-                          child: Text(
-                            'Total',
-                            style: APTextStyle.textXS.semibold.copyWith(
-                              color: AppColors.whitePure,
-                              fontSize: 24,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.trending_up,
+                              color: Colors.green.shade700,
+                              size: 24,
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Resumen de venta',
+                              style: APTextStyle.textMD.semibold.copyWith(
+                                color: Colors.green.shade700,
+                              ),
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: MediaQuery.of(context).size.width / 18,
-                          ),
-                          child: Text(
-                            '\$${addDotsToNumber(int.parse(double.parse(state.sumTotal).toStringAsFixed(0)))}',
-                            style: APTextStyle.textSM.bold.copyWith(
-                              color: AppColors.whitePure,
-                              fontSize: 30,
+                        const SizedBox(height: 12),
+
+                        // Total de productos
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total productos (${state.listSale?.length ?? 0} items)',
+                              style: APTextStyle.textSM.medium.copyWith(
+                                color: Colors.grey[700],
+                              ),
                             ),
-                          ),
+                            Text(
+                              '\$${addDotsToNumber(int.parse(double.parse(state.sumTotal).toStringAsFixed(0)))}',
+                              style: APTextStyle.textLG.bold.copyWith(
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Envío
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.local_shipping,
+                                  size: 18,
+                                  color:
+                                      double.parse(state.sumTotal) >= 100000 ? Colors.green.shade700 : Colors.grey[700],
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Envío',
+                                  style: APTextStyle.textSM.medium.copyWith(
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              double.parse(state.sumTotal) >= 100000 ? 'Gratis' : '\$15.000',
+                              style: APTextStyle.textLG.bold.copyWith(
+                                color: double.parse(state.sumTotal) >= 100000 ? Colors.green.shade700 : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 12),
+
+                        // Ganancia total
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.account_balance_wallet,
+                                  size: 18,
+                                  color: Colors.green.shade700,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Tu ganancia',
+                                  style: APTextStyle.textSM.semibold.copyWith(
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '\$${_calculateTotalProfit(state)}',
+                              style: APTextStyle.textXL.bold.copyWith(
+                                color: Colors.green.shade700,
+                                fontSize: 24,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                   SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '¿Estas listo para pagar?',
-                      style: APTextStyle.textLG.semibold.copyWith(
-                        color: AppColors.primaryMain,
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height / 64),
+                  // Align(
+                  //   alignment: Alignment.centerLeft,
+                  //   child: Text(
+                  //     '¿Estas listo para pagar?',
+                  //     style: APTextStyle.textLG.semibold.copyWith(
+                  //       color: AppColors.primaryMain,
+                  //       fontSize: 20,
+                  //     ),
+                  //   ),
+                  // ),
+                  // SizedBox(height: MediaQuery.of(context).size.height / 64),
                   AppButton.primary(
                     onPressed: state.listSale != null && state.listSale!.isNotEmpty
                         ? () {
-                            // Calcular el total de artículos y precio
+                            // Calcular el total de artículos y precio (incluyendo envío)
                             final totalItems = state.listSale!.length;
-                            final totalPrice = double.parse(state.sumTotal).toInt();
+                            final totalPrice = _calculateFinalTotal(state);
 
                             // Navegar a la selección de direcciones
                             context.push(

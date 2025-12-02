@@ -28,7 +28,6 @@ class _HomeMobileState extends State<HomeMobile> {
 
   @override
   Widget build(BuildContext context) {
-    double displayWidth = MediaQuery.of(context).size.width;
     final currentLocation = GoRouterState.of(context).uri.path;
 
     // Lista de rutas que requieren botón de atrás
@@ -57,9 +56,30 @@ class _HomeMobileState extends State<HomeMobile> {
                   Icons.arrow_back_ios,
                   color: AppColors.primaryMain,
                 ),
-                onPressed: () => context.pop(),
+                onPressed: () => currentLocation != RoutesNames.productList
+                    ? currentLocation != RoutesNames.subCategory
+                        ? context.pop()
+                        : context.go(RoutesNames.login)
+                    : context.go(RoutesNames.subCategory),
               )
             : null,
+        title: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            return Text(
+              state.index == 0
+                  ? 'Producto'
+                  : state.index == 1
+                      ? 'Mi billetera'
+                      : state.index == 2
+                          ? 'Venta en curso'
+                          : 'Configuración',
+              style: APTextStyle.textXS.bold.copyWith(
+                color: AppColors.primaryMain,
+                fontSize: 24,
+              ),
+            );
+          },
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -103,152 +123,226 @@ class _HomeMobileState extends State<HomeMobile> {
       body: SafeArea(child: widget.child),
       bottomNavigationBar: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
-          return Container(
-            margin: EdgeInsets.only(
-              bottom: displayWidth * .012,
-              top: displayWidth * .01,
-              left: displayWidth * .04,
-              right: displayWidth * .04,
-            ),
-            height: displayWidth * .12,
-            decoration: BoxDecoration(
-              color: AppColors.whitePure,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: ListView.builder(
-              itemCount: listOfStrings.length,
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: displayWidth * .01),
-              itemBuilder: (context, index) => InkWell(
-                onTap: () {
-                  context.read<HomeBloc>().add(Paginator(index: index));
+          return BlocBuilder<CartBloc, CartState>(
+            builder: (context, cartState) {
+              return BottomNavigationBar(
+                backgroundColor: AppColors.whiteTechnical,
+                elevation: 0,
+                selectedIconTheme: const IconThemeData(color: AppColors.primaryMain),
+                unselectedIconTheme: const IconThemeData(color: AppColors.secondary),
+                selectedItemColor: AppColors.primaryMain,
+                unselectedItemColor: AppColors.secondary,
+                items: listOfStrings.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final label = entry.value;
 
+                  // Mostrar badge solo en el ícono del carrito (índice 2)
+                  final showBadge = index == 2 && cartState.listSale != null && cartState.listSale!.isNotEmpty;
+
+                  return BottomNavigationBarItem(
+                    icon: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        FaIcon(listOfIcons[index]),
+                        if (showBadge)
+                          Positioned(
+                            right: -8,
+                            top: -8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Color.fromARGB(255, 169, 4, 34),
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  cartState.listSale!.length.toString(),
+                                  style: const TextStyle(
+                                    color: AppColors.whitePure,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    label: label,
+                  );
+                }).toList(),
+                currentIndex: state.index,
+                onTap: (index) {
+                  context.read<HomeBloc>().add(Paginator(index: index));
                   switch (index) {
                     case 0:
                       context.go(RoutesNames.product);
-
                       break;
                     case 1:
                       context.go(RoutesNames.wallet);
-
                       break;
                     case 2:
                       context.go(RoutesNames.cart);
-                    case 4:
+                      break;
+                    case 3:
                       context.go(RoutesNames.setting);
-
                       break;
                   }
-                  HapticFeedback.lightImpact();
                 },
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                child: Stack(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(seconds: 1),
-                      curve: Curves.fastLinearToSlowEaseIn,
-                      width: index == state.index ? displayWidth * .3 : displayWidth * .15,
-                      alignment: Alignment.center,
-                      child: AnimatedContainer(
-                        duration: const Duration(seconds: 1),
-                        curve: Curves.fastLinearToSlowEaseIn,
-                        height: index == state.index ? displayWidth * .1 : 0,
-                        width: index == state.index ? displayWidth * .3 : 0,
-                        decoration: BoxDecoration(
-                          color: index == state.index ? AppColors.secondary.shade300 : Colors.transparent,
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                    ),
-                    AnimatedContainer(
-                      duration: const Duration(seconds: 1),
-                      curve: Curves.fastLinearToSlowEaseIn,
-                      width: index == state.index ? displayWidth * .3 : displayWidth * .15,
-                      alignment: Alignment.center,
-                      child: Stack(
-                        children: [
-                          Row(
-                            children: [
-                              AnimatedContainer(
-                                duration: const Duration(seconds: 1),
-                                curve: Curves.fastLinearToSlowEaseIn,
-                                width: index == state.index ? displayWidth * .12 : 0,
-                              ),
-                              AnimatedOpacity(
-                                opacity: index == state.index ? 1 : 0,
-                                duration: const Duration(seconds: 1),
-                                curve: Curves.fastLinearToSlowEaseIn,
-                                child: Text(
-                                  index == state.index ? listOfStrings[index] : '',
-                                  style: TextStyle(
-                                    color: AppColors.whitePure,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: displayWidth / 30,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              AnimatedContainer(
-                                duration: const Duration(seconds: 1),
-                                curve: Curves.fastLinearToSlowEaseIn,
-                                width: index == state.index ? displayWidth * .03 : 11,
-                              ),
-                              FaIcon(
-                                listOfIcons[index],
-                                size: displayWidth * .054,
-                                color: index == state.index
-                                    ? AppColors.whitePure
-                                    : AppColors.secondary.shade300.withOpacity(0.6),
-                              ),
-                            ],
-                          ),
-                          BlocBuilder<CartBloc, CartState>(
-                            builder: (context, statePay) {
-                              return statePay.listSale != null && listOfIcons[2] == listOfIcons[index]
-                                  //&& index != state.index
-                                  ? Align(
-                                      alignment: Alignment.topRight,
-                                      child: Container(
-                                        width: 25,
-                                        height: 25,
-                                        decoration: const BoxDecoration(
-                                          color: Color.fromARGB(255, 169, 4, 34),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            statePay.listSale!.length.toString(),
-                                            style: TextStyle(
-                                              color: AppColors.whitePure,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: displayWidth / 30,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  : Container();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+              );
+            },
           );
+
+          // Container(
+          //   margin: EdgeInsets.only(
+          //     bottom: displayWidth * .02,
+          //     top: displayWidth * .01,
+          //     left: displayWidth * .04,
+          //     right: displayWidth * .04,
+          //   ),
+          //   height: displayWidth * .12,
+          //   decoration: BoxDecoration(
+          //     color: AppColors.whitePure,
+          //     boxShadow: [
+          //       BoxShadow(
+          //         color: Colors.black.withOpacity(.1),
+          //         blurRadius: 15,
+          //         offset: const Offset(0, 10),
+          //       ),
+          //     ],
+          //     borderRadius: BorderRadius.circular(50),
+          //   ),
+          //   child: ListView.builder(
+          //     itemCount: listOfStrings.length,
+          //     scrollDirection: Axis.horizontal,
+          //     padding: EdgeInsets.symmetric(horizontal: displayWidth * .01),
+          //     itemBuilder: (context, index) => InkWell(
+          //       onTap: () {
+          //         context.read<HomeBloc>().add(Paginator(index: index));
+
+          //         switch (index) {
+          //           case 0:
+          //             context.go(RoutesNames.product);
+
+          //             break;
+          //           case 1:
+          //             context.go(RoutesNames.wallet);
+
+          //             break;
+          //           case 2:
+          //             context.go(RoutesNames.cart);
+          //           case 4:
+          //             context.go(RoutesNames.setting);
+
+          //             break;
+          //         }
+          //         HapticFeedback.lightImpact();
+          //       },
+          //       splashColor: Colors.transparent,
+          //       highlightColor: Colors.transparent,
+          //       child: Stack(
+          //         children: [
+          //           AnimatedContainer(
+          //             duration: const Duration(seconds: 1),
+          //             curve: Curves.fastLinearToSlowEaseIn,
+          //             width: index == state.index ? displayWidth * .3 : displayWidth * .15,
+          //             alignment: Alignment.center,
+          //             child: AnimatedContainer(
+          //               duration: const Duration(seconds: 1),
+          //               curve: Curves.fastLinearToSlowEaseIn,
+          //               height: index == state.index ? displayWidth * .1 : 0,
+          //               width: index == state.index ? displayWidth * .3 : 0,
+          //               decoration: BoxDecoration(
+          //                 color: index == state.index ? AppColors.secondary.shade300 : Colors.transparent,
+          //                 borderRadius: BorderRadius.circular(50),
+          //               ),
+          //             ),
+          //           ),
+          //           AnimatedContainer(
+          //             duration: const Duration(seconds: 1),
+          //             curve: Curves.fastLinearToSlowEaseIn,
+          //             width: index == state.index ? displayWidth * .3 : displayWidth * .15,
+          //             alignment: Alignment.center,
+          //             child: Stack(
+          //               children: [
+          //                 Row(
+          //                   children: [
+          //                     AnimatedContainer(
+          //                       duration: const Duration(seconds: 1),
+          //                       curve: Curves.fastLinearToSlowEaseIn,
+          //                       width: index == state.index ? displayWidth * .11 : 0,
+          //                     ),
+          //                     AnimatedOpacity(
+          //                       opacity: index == state.index ? 1 : 0,
+          //                       duration: const Duration(seconds: 1),
+          //                       curve: Curves.fastLinearToSlowEaseIn,
+          //                       child: Text(
+          //                         index == state.index ? listOfStrings[index] : '',
+          //                         style: TextStyle(
+          //                           color: AppColors.whitePure,
+          //                           fontWeight: FontWeight.w600,
+          //                           fontSize: displayWidth / 30,
+          //                         ),
+          //                       ),
+          //                     ),
+          //                   ],
+          //                 ),
+          //                 Row(
+          //                   children: [
+          //                     AnimatedContainer(
+          //                       duration: const Duration(seconds: 1),
+          //                       curve: Curves.fastLinearToSlowEaseIn,
+          //                       width: index == state.index ? displayWidth * .03 : 11,
+          //                     ),
+          //                     FaIcon(
+          //                       listOfIcons[index],
+          //                       color: index == state.index
+          //                           ? AppColors.whitePure
+          //                           : AppColors.secondary.shade300.withOpacity(0.6),
+          //                     ),
+          //                   ],
+          //                 ),
+          //                 BlocBuilder<CartBloc, CartState>(
+          //                   builder: (context, statePay) {
+          //                     return statePay.listSale != null && listOfIcons[2] == listOfIcons[index]
+          //                         //&& index != state.index
+          //                         ? Align(
+          //                             alignment: Alignment.topRight,
+          //                             child: Container(
+          //                               width: 25,
+          //                               height: 25,
+          //                               decoration: const BoxDecoration(
+          //                                 color: Color.fromARGB(255, 169, 4, 34),
+          //                                 shape: BoxShape.circle,
+          //                               ),
+          //                               child: Center(
+          //                                 child: Text(
+          //                                   statePay.listSale!.length.toString(),
+          //                                   style: TextStyle(
+          //                                     color: AppColors.whitePure,
+          //                                     fontWeight: FontWeight.w600,
+          //                                     fontSize: displayWidth / 30,
+          //                                   ),
+          //                                 ),
+          //                               ),
+          //                             ),
+          //                           )
+          //                         : Container();
+          //                   },
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // );
         },
       ),
     );
@@ -257,16 +351,16 @@ class _HomeMobileState extends State<HomeMobile> {
   List<IconData> listOfIcons = [
     FontAwesomeIcons.house,
     FontAwesomeIcons.wallet,
-    FontAwesomeIcons.shoppingBag,
     FontAwesomeIcons.truck,
+    //  FontAwesomeIcons.shoppingBag,
     FontAwesomeIcons.cog,
   ];
 
   List<String> listOfStrings = [
     'Inicio',
     'Billetera',
-    'Producto',
     'Tu pedido',
-    'settings',
+    //  'catálogo',
+    'Cuenta',
   ];
 }

@@ -82,18 +82,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await LoginStore.instance.removeDataPendingJoinTeam();
       await UserStore.instance.outUser();
       await UserStore.instance.outUser();
-
-      showAppModal<void>(
-        context: rootNavigatorKey.currentContext!,
-        builder: (context) => AppModal.oneButton(
-          title: 'Algunos datos son erróneos',
-          subTitle: 'Por favor, verificá los campos ingresados para intentar nuevamente.',
-          onPressedPrymary: () {
-            Navigator.pop(context);
-          },
-          buttonTitle: 'Aceptar',
-        ),
-      );
+      print(leftResponse!.message);
+      (leftResponse!.message == 'Ese numero no esta registrado')
+          ? emit(state.copyWith(indexScreen: 'register'))
+          : showAppModal<void>(
+              context: rootNavigatorKey.currentContext!,
+              builder: (context) => AppModal.oneButton(
+                title: 'Algunos datos son erróneos',
+                subTitle: 'Por favor, verificá los campos ingresados para intentar nuevamente.',
+                onPressedPrymary: () {
+                  Navigator.pop(context);
+                },
+                buttonTitle: 'Aceptar',
+              ),
+            );
     } else {
       await LoginStore.instance.logInSession(
         currentStore: 0,

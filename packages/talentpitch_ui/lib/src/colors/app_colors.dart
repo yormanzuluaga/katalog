@@ -18,11 +18,11 @@ abstract class AppColors {
 
   static const Color grey = Color(0x33939AAA);
 
-  static const Color primaryMain = Color(0xFF4c45bf);
+  static const Color primaryMain = Color(0xFF0056D2);
   static const MaterialColor secondary = MaterialColor(
-    0xFF6e60cf,
+    0xFF4F8BFF,
     <int, Color>{
-      300: Color(0xFF7578DB),
+      300: Color(0xFF4F8BFF),
     },
   );
   static const MaterialColor secondaryDark = MaterialColor(
@@ -57,7 +57,7 @@ abstract class AppColors {
     },
   );
 
-  static const Color whiteTechnical = Color(0xFFF0F4F8);
+  static const Color whiteTechnical = Color(0xFFF5F8FF);
   static const Color whitePure = Color(0xFFFFFFFF);
 
   /// Error

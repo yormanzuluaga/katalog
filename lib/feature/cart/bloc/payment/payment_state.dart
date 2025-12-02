@@ -83,3 +83,34 @@ class PaymentSuccess extends PaymentState {
   @override
   List<Object?> get props => [transactionId, reference, amount];
 }
+
+/// Estado cuando la transacción se está enviando al backend
+class SendingTransactionToBackend extends PaymentState {}
+
+/// Estado cuando la transacción se envió exitosamente al backend
+class TransactionSentToBackend extends PaymentState {
+  final String wompiTransactionId;
+  final String wompiReference;
+
+  const TransactionSentToBackend({
+    required this.wompiTransactionId,
+    required this.wompiReference,
+  });
+
+  @override
+  List<Object?> get props => [wompiTransactionId, wompiReference];
+}
+
+/// Estado cuando falla el envío de la transacción al backend
+class TransactionBackendError extends PaymentState {
+  final String message;
+  final String? wompiTransactionId;
+
+  const TransactionBackendError({
+    required this.message,
+    this.wompiTransactionId,
+  });
+
+  @override
+  List<Object?> get props => [message, wompiTransactionId];
+}

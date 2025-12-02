@@ -9,6 +9,7 @@ import 'package:talentpitch_test/feature/cart/widget/wompi_payment_screen_v2.dar
 import 'package:talentpitch_test/feature/cart/widget/payment_success_screen.dart';
 import 'package:talentpitch_test/feature/cart/widget/payment_rejected_screen.dart';
 import 'package:talentpitch_test/feature/cart/widget/wompi_webview_screen.dart';
+import 'package:talentpitch_test/feature/cart/bloc/payment/payment_bloc.dart';
 import 'package:talentpitch_test/feature/product/view/product_page.dart';
 import 'package:talentpitch_test/feature/product/widget/product_list.dart';
 import 'package:talentpitch_test/feature/product/widget/sub_category_list.dart';
@@ -16,11 +17,13 @@ import 'package:talentpitch_test/feature/setting/view/setting_page.dart';
 import 'package:talentpitch_test/feature/wallet/view/wallet_page.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/home/view/home_page.dart';
 import 'package:talentpitch_test/feature/main_dashboard/view/main_dashboard_page.dart';
 import 'package:talentpitch_test/feature/main_dashboard/widgets/detail.dart';
+import 'package:talentpitch_test/injection/injection_container.dart';
 
 part 'router_handlers.dart';
 

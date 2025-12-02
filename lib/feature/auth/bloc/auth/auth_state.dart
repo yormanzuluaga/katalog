@@ -32,5 +32,7 @@ class AuthState extends Equatable {
         message,
         indexScreen,
         numberPhone,
+        code,
+        indexScreen,
       ];
 }

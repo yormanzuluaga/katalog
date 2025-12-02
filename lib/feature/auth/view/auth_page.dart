@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:talentpitch_test/feature/auth/bloc/auth/auth_bloc.dart';
 import 'package:talentpitch_test/feature/auth/widget/ap_login_infor.dart';
+import 'package:talentpitch_test/feature/auth/widget/register_user.dart';
 import 'package:talentpitch_test/feature/auth/widget/verify_number_mobile.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
@@ -29,9 +30,11 @@ class AuthPageState extends State<AuthPage> {
                       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       child: state.indexScreen == 'login'
                           ? const ApLoginInfor()
-                          : const VerifyNumberMobile(
-                              numbePhone: '',
-                            ),
+                          : state.indexScreen != 'register'
+                              ? const VerifyNumberMobile(
+                                  numbePhone: '',
+                                )
+                              : RegisterUser(numberPhone: state.numberPhone.toString()),
                     ),
                   ),
                 );

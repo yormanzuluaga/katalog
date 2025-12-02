@@ -37,7 +37,9 @@ class SubCategoryList extends StatelessWidget {
                     final category = state.subCategory!.subCategories![index];
                     return InkWell(
                       onTap: () {
-                        context.read<CategoryBloc>().add(GetProductEvent(idProduct: category.id ?? ''));
+                        context
+                            .read<CategoryBloc>()
+                            .add(GetProductEvent(idProduct: category.id ?? ''));
                       },
                       child: Column(
                         children: [
@@ -48,20 +50,50 @@ class SubCategoryList extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primaryMain.withOpacity(.2),
+                                    color:
+                                        AppColors.primaryMain.withOpacity(.2),
                                     blurRadius: 5,
                                     offset: const Offset(0, 5),
                                   )
                                 ],
                               ),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
                                 child: Center(
-                                  child: FaIcon(
-                                    FontAwesomeIcons.boxOpen,
-                                    color: AppColors.primaryMain,
-                                    size: 32,
-                                  ),
+                                  child: (category.img != null &&
+                                          category.img!.isNotEmpty)
+                                      ? ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.network(
+                                            category.img!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return const FaIcon(
+                                                FontAwesomeIcons.boxOpen,
+                                                color: AppColors.primaryMain,
+                                                size: 32,
+                                              );
+                                            },
+                                            loadingBuilder: (context, child,
+                                                loadingProgress) {
+                                              if (loadingProgress == null)
+                                                return child;
+                                              return const Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: AppColors.primaryMain,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      : const FaIcon(
+                                          FontAwesomeIcons.boxOpen,
+                                          color: AppColors.primaryMain,
+                                          size: 32,
+                                        ),
                                 ),
                               ),
                             ),

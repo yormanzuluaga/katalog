@@ -13,4 +13,7 @@ void _initResourcesInjections() {
   sl.registerFactory<AddressResource>(() => AddressResource(
         apiClient: sl(),
       ));
+  sl.registerFactory<TransactionsResource>(() => TransactionsResource(
+        apiClient: sl(),
+      ));
 }

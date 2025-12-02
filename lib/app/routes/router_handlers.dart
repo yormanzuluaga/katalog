@@ -115,11 +115,16 @@ Page<Widget> _wompiPaymentWebViewHandler(
 ) {
   final data = state.extra as Map<String, dynamic>;
   return NoTransitionPage(
-    child: WompiWebViewScreen(
-      paymentUrl: data['paymentUrl'],
-      reference: data['reference'],
-      amount: data['amount'],
-      customerEmail: data['customerEmail'],
+    child: BlocProvider(
+      create: (context) => sl<PaymentBloc>(),
+      child: WompiWebViewScreen(
+        paymentUrl: data['paymentUrl'],
+        reference: data['reference'],
+        amount: data['amount'],
+        customerEmail: data['customerEmail'],
+        shippingAddressId: data['shippingAddressId'] ?? '',
+        cartItems: data['cartItems'] ?? [],
+      ),
     ),
   );
 }

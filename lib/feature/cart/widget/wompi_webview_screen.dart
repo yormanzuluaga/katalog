@@ -1,11 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:api_helper/api_helper.dart';
 import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/cart/services/wompi_payment_service.dart';
 import 'package:talentpitch_test/feature/cart/widget/payment_success_screen.dart';
 import 'package:talentpitch_test/feature/cart/widget/payment_rejected_screen.dart';
+import 'package:talentpitch_test/feature/cart/bloc/payment/payment_bloc.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class WompiWebViewScreen extends StatefulWidget {
@@ -13,6 +17,8 @@ class WompiWebViewScreen extends StatefulWidget {
   final String reference;
   final double amount;
   final String customerEmail;
+  final String shippingAddressId;
+  final List<Product> cartItems;
 
   const WompiWebViewScreen({
     super.key,
@@ -20,6 +26,8 @@ class WompiWebViewScreen extends StatefulWidget {
     required this.reference,
     required this.amount,
     required this.customerEmail,
+    required this.shippingAddressId,
+    required this.cartItems,
   });
 
   @override
@@ -139,13 +147,12 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
 
       final verificationResult = await WompiPaymentService.verifyTransactionStatus(transactionId);
 
-      // Cerrar diálogo de carga
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-
       if (verificationResult == null) {
         print('❌ Error al verificar estado de transacción');
+        // Cerrar diálogo de carga
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         _showPaymentError('Error al verificar el estado del pago');
         return;
       }
@@ -160,10 +167,41 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
       print('   Transaction ID: $transactionId');
 
       if (isApproved) {
-        print('✅ TRANSACCIÓN APROBADA - Navegando a pantalla de éxito');
-        _navigateToSuccessScreen(transactionId, transactionDetails);
+        print('✅ TRANSACCIÓN APROBADA - Enviando al backend...');
+
+        // Actualizar mensaje del diálogo
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          _showLoadingDialog('Registrando transacción...');
+        }
+
+        // Enviar transacción al backend
+        final backendSuccess = await _sendTransactionToBackend(
+          transactionId: transactionId,
+          wompiReference: widget.reference,
+          paymentStatus: status,
+          transactionDetails: transactionDetails,
+        );
+
+        // Cerrar diálogo de carga
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+
+        if (backendSuccess) {
+          print('✅ Transacción enviada exitosamente al backend');
+          _navigateToSuccessScreen(transactionId, transactionDetails);
+        } else {
+          print('⚠️ Error al enviar transacción al backend, pero pago fue exitoso');
+          // Aún así navegar a éxito porque el pago fue aprobado
+          _navigateToSuccessScreen(transactionId, transactionDetails);
+        }
       } else {
         print('❌ TRANSACCIÓN RECHAZADA - Navegando a pantalla de rechazo');
+        // Cerrar diálogo de carga
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         _navigateToRejectedScreen(transactionId, transactionDetails, 'El pago fue rechazado. Status: $status');
       }
     } catch (e) {
@@ -176,6 +214,112 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
       }
       _showPaymentError('Error al procesar el pago: $e');
     }
+  }
+
+  Future<bool> _sendTransactionToBackend({
+    required String transactionId,
+    required String wompiReference,
+    required String paymentStatus,
+    required Map<String, dynamic>? transactionDetails,
+  }) async {
+    try {
+      print('📤 Enviando transacción al backend usando PaymentBloc...');
+
+      final approvalCode = transactionDetails?['payment_method']?['extra']?['approval_code']?.toString() ?? '';
+
+      // Crear un Completer ANTES de disparar el evento
+      final completer = Completer<bool>();
+      StreamSubscription? subscription;
+
+      // Escuchar el stream ANTES de disparar el evento
+      subscription = context.read<PaymentBloc>().stream.listen((state) {
+        print('🔄 Estado recibido del BLoC: ${state.runtimeType}');
+
+        if (state is TransactionSentToBackend) {
+          print('✅ BLoC: Transacción enviada exitosamente');
+          if (!completer.isCompleted) {
+            completer.complete(true);
+            subscription?.cancel();
+          }
+        } else if (state is TransactionBackendError) {
+          print('❌ BLoC: Error al enviar transacción: ${state.message}');
+          if (!completer.isCompleted) {
+            completer.complete(false);
+            subscription?.cancel();
+          }
+        }
+      });
+
+      // Timeout después de 15 segundos
+      Future.delayed(const Duration(seconds: 15), () {
+        if (!completer.isCompleted) {
+          print('⏰ Timeout esperando respuesta del BLoC');
+          completer.complete(false);
+          subscription?.cancel();
+        }
+      });
+
+      print('📤 Disparando evento SendTransactionToBackend al BLoC...');
+
+      // Ahora sí, disparar el evento del BLoC
+      context.read<PaymentBloc>().add(
+            SendTransactionToBackend(
+              wompiTransactionId: transactionId,
+              wompiReference: wompiReference,
+              paymentStatus: paymentStatus,
+              customerEmail: widget.customerEmail,
+              approvalCode: approvalCode,
+              shippingAddressId: widget.shippingAddressId,
+              cartItems: widget.cartItems,
+            ),
+          );
+
+      print('⏳ Esperando respuesta del BLoC...');
+
+      // Esperar el resultado
+      final result = await completer.future;
+      print('🎯 Resultado final del BLoC: $result');
+
+      return result;
+    } catch (e) {
+      print('❌ Excepción al enviar transacción al backend: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _waitForBlocResponse() async {
+    print('⏳ Esperando respuesta del BLoC...');
+
+    // Escuchar el stream del BLoC por un tiempo limitado
+    final completer = Completer<bool>();
+    StreamSubscription? subscription;
+
+    subscription = context.read<PaymentBloc>().stream.listen((state) {
+      if (state is TransactionSentToBackend) {
+        print('✅ BLoC: Transacción enviada exitosamente');
+        if (!completer.isCompleted) {
+          completer.complete(true);
+          subscription?.cancel();
+        }
+      } else if (state is TransactionBackendError) {
+        print('❌ BLoC: Error al enviar transacción');
+        if (!completer.isCompleted) {
+          completer.complete(false);
+          subscription?.cancel();
+        }
+      }
+    });
+
+    // Timeout después de 10 segundos
+    Future.delayed(const Duration(seconds: 10), () {
+      if (!completer.isCompleted) {
+        print('⏰ Timeout esperando respuesta del BLoC');
+        completer.complete(false);
+        subscription?.cancel();
+      }
+    });
+
+    return completer.future;
   }
 
   void _showLoadingDialog(String message) {
@@ -540,8 +684,6 @@ Loading: $_isLoading
               } else if (code == 401) {
                 print('🚨 ERROR 401: Problema de autenticación con Wompi');
                 _showError('Error de autenticación con Wompi. Verifica las credenciales.');
-              } else {
-                _showError('Error de conexión: $message');
               }
             },
             onUpdateVisitedHistory: (InAppWebViewController controller, WebUri? url, bool? androidIsReload) {

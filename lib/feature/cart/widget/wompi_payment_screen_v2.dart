@@ -626,6 +626,10 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
       print('🌐 URL de checkout: $fullUrl');
       print('🚀 Abriendo widget de Wompi en WebView...');
 
+      // Obtener datos necesarios del orderData
+      final shippingAddressId = widget.orderData['shippingAddressId'] as String? ?? '';
+      final cartItems = widget.orderData['cartItems'] as List? ?? [];
+
       // Navegar al WebView de Wompi
       if (mounted) {
         context.push(
@@ -635,6 +639,8 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
             'reference': reference,
             'amount': totalAmount,
             'customerEmail': customerEmail,
+            'shippingAddressId': shippingAddressId,
+            'cartItems': cartItems,
           },
         );
 

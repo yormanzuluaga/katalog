@@ -26,4 +26,7 @@ void _initBlocsInjections() {
   sl.registerFactory(
     () => AddressBloc(addressRepository: sl()),
   );
+  sl.registerFactory(
+    () => PaymentBloc(transactionsRepository: sl()),
+  );
 }

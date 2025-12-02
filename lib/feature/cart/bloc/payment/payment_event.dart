@@ -69,3 +69,35 @@ class CheckTransactionStatus extends PaymentEvent {
 class LoadPSEBanks extends PaymentEvent {
   const LoadPSEBanks();
 }
+
+/// Evento para enviar la transacción al backend
+class SendTransactionToBackend extends PaymentEvent {
+  final String wompiTransactionId;
+  final String wompiReference;
+  final String paymentStatus;
+  final String customerEmail;
+  final String approvalCode;
+  final String shippingAddressId;
+  final List<Product> cartItems;
+
+  const SendTransactionToBackend({
+    required this.wompiTransactionId,
+    required this.wompiReference,
+    required this.paymentStatus,
+    required this.customerEmail,
+    required this.approvalCode,
+    required this.shippingAddressId,
+    required this.cartItems,
+  });
+
+  @override
+  List<Object?> get props => [
+        wompiTransactionId,
+        wompiReference,
+        paymentStatus,
+        customerEmail,
+        approvalCode,
+        shippingAddressId,
+        cartItems,
+      ];
+}

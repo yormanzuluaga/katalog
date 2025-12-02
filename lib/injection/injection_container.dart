@@ -7,6 +7,7 @@ import 'package:talentpitch_test/app/app.dart';
 import 'package:talentpitch_test/feature/auth/bloc/auth/auth_bloc.dart';
 import 'package:talentpitch_test/feature/cart/bloc/address/address_bloc.dart';
 import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
+import 'package:talentpitch_test/feature/cart/bloc/payment/payment_bloc.dart';
 import 'package:talentpitch_test/feature/home/bloc/home_bloc.dart';
 import 'package:talentpitch_test/feature/product/bloc/category/category_bloc.dart';
 import 'package:talentpitch_test/feature/product/bloc/product/product_bloc.dart';

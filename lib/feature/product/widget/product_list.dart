@@ -6,6 +6,7 @@ import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
 import 'package:talentpitch_test/feature/product/bloc/category/category_bloc.dart';
 import 'package:talentpitch_test/feature/product/widget/product_variants_modal.dart';
+import 'package:talentpitch_test/feature/product/widget/improved_product_card.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class ProductList extends StatefulWidget {
@@ -52,110 +53,103 @@ class ProductListState extends State<ProductList> {
                           physics: BouncingScrollPhysics(),
                           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent: MediaQuery.of(context).size.width / 2,
-                            childAspectRatio: 2 / 3,
-                            crossAxisSpacing: MediaQuery.of(context).size.width / 42,
-                            mainAxisSpacing: MediaQuery.of(context).size.width / 42,
+                            childAspectRatio: 0.6,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
                           ),
                           itemBuilder: (BuildContext context, int index) {
                             final product = state.product!.product![index];
-                            return InkWell(
+                            // Calcular valores
+                            final salePrice = product.pricing?.salePrice?.toDouble() ?? 0.0;
+                            final costPrice = product.pricing?.costPrice?.toDouble() ?? 0.0;
+                            final commission = product.pricing?.commission?.toDouble() ?? 0.0;
+
+                            return ImprovedProductCard(
+                              title: product.name ?? 'Producto',
+                              subtitle: product.brand?.name ?? '',
+                              imageUrl: product.img,
+                              salePrice: salePrice,
+                              costPrice: costPrice,
+                              commission: commission,
+                              discount: product.discount?.toString(),
                               onTap: () {
-                                context.push(RoutesNames.detail, extra: [
-                                  product,
-                                ]);
+                                context.push(RoutesNames.detail, extra: [product]);
                               },
-                              child: AppCardProduct.cardVerticalProduct(
-                                title: product.name ?? 'Producto',
-                                subTitle: product.brand?.name ?? '',
-                                subSales: product.discount?.toString() ?? '',
-                                price: product.pricing?.salePrice.toString() ?? '0',
-                                sale: product.pricing?.commission.toString() ?? '0',
-                                height: MediaQuery.of(context).size.width / 1.7,
-                                onChange: (value) {},
-                                onCloseds: () {},
-                                widgetCounter: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                    horizontal: 8,
-                                  ),
-                                  child: Builder(
-                                    builder: (context) {
-                                      // Para productos simples, verificar si está en el carrito
-                                      if (product.productType == 'simple') {
-                                        final productInCart = stateCart.listSale?.firstWhere(
-                                          (cartProduct) => cartProduct.id == product.id,
-                                          orElse: () => Product(),
-                                        );
+                              actionButton: Builder(
+                                builder: (context) {
+                                  // Para productos simples, verificar si está en el carrito
+                                  if (product.productType == 'simple') {
+                                    final productInCart = stateCart.listSale?.firstWhere(
+                                      (cartProduct) => cartProduct.id == product.id,
+                                      orElse: () => Product(),
+                                    );
 
-                                        final isProductInCart = productInCart?.id == product.id;
-                                        final quantity = productInCart?.quantity ?? 1;
+                                    final isProductInCart = productInCart?.id == product.id;
+                                    final quantity = productInCart?.quantity ?? 1;
 
-                                        return (isProductInCart)
-                                            ? SizedBox(
-                                                height: 50,
-                                                child: AppCounters.normal(
-                                                  key: ValueKey('counter_${product.id}'),
-                                                  initialValue: quantity,
-                                                  onDelete: () {
-                                                    context.read<CartBloc>().add(
-                                                          DeletedCartEvent(id: product.id ?? ''),
-                                                        );
-                                                  },
-                                                  onChange: (value) {
-                                                    context.read<CartBloc>().add(
-                                                          CountCartEvent(
-                                                            id: product.id ?? '',
-                                                            quantity: value,
-                                                          ),
-                                                        );
-                                                  },
-                                                ),
-                                              )
-                                            : MaterialButton(
-                                                key: ValueKey('add_btn_${product.id}'),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(16),
-                                                ),
-                                                minWidth: double.infinity,
-                                                elevation: 0,
-                                                height: 45.0,
-                                                color: AppColors.secondary,
-                                                onPressed: () {
-                                                  context.read<CartBloc>().add(
-                                                        AddCartEvent(
-                                                          productsSalesModel: product,
-                                                        ),
-                                                      );
-                                                },
-                                                child: Text(
-                                                  'Agregar',
-                                                  style: APTextStyle.textMD.bold.copyWith(color: AppColors.whitePure),
-                                                ),
-                                              );
-                                      } else {
-                                        // Para productos con variantes, siempre mostrar botón "Ver opciones"
-                                        // La gestión de cantidades se hará en la vista detalle
-                                        return MaterialButton(
-                                          key: ValueKey('variants_btn_${product.id}'),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          minWidth: double.infinity,
-                                          elevation: 0,
-                                          height: 45.0,
-                                          color: AppColors.secondary,
-                                          onPressed: () {
-                                            _showProductVariantsModal(context, product);
-                                          },
-                                          child: Text(
-                                            'Agregar',
-                                            style: APTextStyle.textMD.bold.copyWith(color: AppColors.whitePure),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
+                                    return (isProductInCart)
+                                        ? SizedBox(
+                                            height: 45,
+                                            child: AppCounters.normal(
+                                              key: ValueKey('counter_${product.id}'),
+                                              initialValue: quantity,
+                                              onDelete: () {
+                                                context.read<CartBloc>().add(
+                                                      DeletedCartEvent(id: product.id ?? ''),
+                                                    );
+                                              },
+                                              onChange: (value) {
+                                                context.read<CartBloc>().add(
+                                                      CountCartEvent(
+                                                        id: product.id ?? '',
+                                                        quantity: value,
+                                                      ),
+                                                    );
+                                              },
+                                            ),
+                                          )
+                                        : MaterialButton(
+                                            key: ValueKey('add_btn_${product.id}'),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            minWidth: double.infinity,
+                                            elevation: 0,
+                                            height: 42.0,
+                                            color: AppColors.secondary,
+                                            onPressed: () {
+                                              context.read<CartBloc>().add(
+                                                    AddCartEvent(
+                                                      productsSalesModel: product,
+                                                    ),
+                                                  );
+                                            },
+                                            child: Text(
+                                              'Agregar',
+                                              style: APTextStyle.textSM.bold.copyWith(color: AppColors.whitePure),
+                                            ),
+                                          );
+                                  } else {
+                                    // Para productos con variantes, siempre mostrar botón "Ver opciones"
+                                    return MaterialButton(
+                                      key: ValueKey('variants_btn_${product.id}'),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      minWidth: double.infinity,
+                                      elevation: 0,
+                                      height: 42.0,
+                                      color: AppColors.secondary,
+                                      onPressed: () {
+                                        _showProductVariantsModal(context, product);
+                                      },
+                                      child: Text(
+                                        'Agregar',
+                                        style: APTextStyle.textSM.bold.copyWith(color: AppColors.whitePure),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                             );
                           }),

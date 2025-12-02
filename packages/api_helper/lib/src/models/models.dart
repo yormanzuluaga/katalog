@@ -8,3 +8,5 @@ export 'category/sub_category_model.dart';
 export 'category/product_model.dart';
 export 'address/address_model.dart';
 export 'address/address_user_model.dart';
+export 'wallet/wallet_model.dart';
+export 'transactions/transactions_model.dart';
