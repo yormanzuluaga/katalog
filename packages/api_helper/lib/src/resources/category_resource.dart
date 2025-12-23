@@ -96,4 +96,32 @@ class CategoryResource {
       );
     }
   }
+
+  Future<(ApiException?, ProductModel?)> getProductByFilter({
+    required String idProduct,
+    required String filter,
+    Map<String, String>? headers,
+  }) async {
+    final response = await _apiClient.get(
+      'api/products/filter/$filter',
+      modifiedHeaders: headers,
+    );
+
+    if (response.statusCode == HttpStatus.ok) {
+      final productResponse = ProductModel.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+      return Future.value((null, productResponse));
+    } else {
+      return Future.value(
+        (
+          ApiException(
+            response.statusCode,
+            response.body,
+          ),
+          null,
+        ),
+      );
+    }
+  }
 }

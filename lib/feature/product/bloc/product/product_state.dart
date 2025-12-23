@@ -2,25 +2,38 @@ part of 'product_bloc.dart';
 
 class ProductState extends Equatable {
   final String? message;
-  // final List<ProductStoreModel>? productList;
+  final ProductModel? productModel;
+  final String? selectedFilter;
+  final bool isLoading;
+
   const ProductState({
-    // this.productList,
     this.message,
+    this.productModel,
+    this.selectedFilter,
+    this.isLoading = false,
   });
 
   ProductState copyWith({
-    // List<ProductStoreModel>? productList,
     String? message,
+    ProductModel? productModel,
+    String? selectedFilter,
+    bool? isLoading,
+    bool clearFilter = false,
   }) {
     return ProductState(
-      // productList: productList ?? this.productList,
       message: message ?? this.message,
+      productModel: productModel ?? this.productModel,
+      selectedFilter:
+          clearFilter ? null : (selectedFilter ?? this.selectedFilter),
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 
   @override
   List<Object?> get props => [
-        // productList,
         message,
+        productModel,
+        selectedFilter,
+        isLoading,
       ];
 }

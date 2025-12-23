@@ -23,8 +23,46 @@ class GetSubCategoryEvent extends CategoryEvent {
 
 class GetProductEvent extends CategoryEvent {
   final String idProduct;
-  const GetProductEvent({required this.idProduct});
+  final String? title;
+  const GetProductEvent({required this.idProduct, this.title});
+
+  @override
+  List<Object> get props => [idProduct, title ?? ''];
+}
+
+class FilterProductEvent extends CategoryEvent {
+  final String idProduct;
+  final String filter;
+  const FilterProductEvent({required this.idProduct, required this.filter});
+
+  @override
+  List<Object> get props => [idProduct, filter];
+}
+
+class ClearFilterEvent extends CategoryEvent {
+  final String idProduct;
+  const ClearFilterEvent({required this.idProduct});
 
   @override
   List<Object> get props => [idProduct];
+}
+
+class LoadBrandsEvent extends CategoryEvent {
+  const LoadBrandsEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+class LoadProductsByBrandEvent extends CategoryEvent {
+  final String brandId;
+  final String brandName;
+
+  const LoadProductsByBrandEvent({
+    required this.brandId,
+    required this.brandName,
+  });
+
+  @override
+  List<Object> get props => [brandId, brandName];
 }

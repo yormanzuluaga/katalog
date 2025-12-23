@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:api_helper/api_helper.dart';
 import 'package:api_repository/api_repository.dart';
 import 'package:equatable/equatable.dart';
@@ -37,7 +39,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       if (acceptanceToken != null) {
         emit(PaymentInitialized(acceptanceToken: acceptanceToken));
       } else {
-        emit(PaymentError('No se pudo inicializar el pago. Intenta nuevamente.'));
+        emit(PaymentError(
+            'No se pudo inicializar el pago. Intenta nuevamente.'));
       }
     } catch (e) {
       emit(PaymentError('Error al inicializar el pago: ${e.toString()}'));
@@ -67,7 +70,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           reference: event.reference,
         ));
       } else {
-        emit(PaymentError('No se pudo crear la transacción. Intenta nuevamente.'));
+        emit(PaymentError(
+            'No se pudo crear la transacción. Intenta nuevamente.'));
       }
     } catch (e) {
       emit(PaymentError('Error al crear transacción: ${e.toString()}'));
@@ -85,7 +89,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       // El nuevo servicio usa processPaymentWithPSE() o processPaymentWithNequi()
       // en lugar de createPaymentSource()
 
-      emit(const PaymentError('Método createPaymentSource no implementado en el nuevo servicio'));
+      emit(const PaymentError(
+          'Método createPaymentSource no implementado en el nuevo servicio'));
 
       /*
       // Código comentado del método anterior:
@@ -112,7 +117,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     emit(PaymentLoading());
 
     try {
-      final status = await WompiPaymentService.getTransactionStatus(event.transactionId);
+      final status =
+          await WompiPaymentService.getTransactionStatus(event.transactionId);
 
       if (status != null) {
         emit(PaymentStatusChecked(transactionStatus: status));
@@ -163,16 +169,13 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
         wompiReference: event.wompiReference,
         paymentStatus: event.paymentStatus.toLowerCase(),
         customerEmail: event.customerEmail,
-        approvalCode: event.approvalCode,
+        approvalCode: '1234',
       );
 
-      print('📊 BLoC: Datos de transacción construidos:');
-      print('   Items: ${transaction.items.length}');
-      print('   Shipping Address ID: ${transaction.shippingAddressId}');
-      print('   Wompi Transaction ID: ${transaction.wompiTransactionId}');
-      print('   Payment Status: ${transaction.paymentStatus}');
+      print('📋 BLoC: JSON completo de la transacción:');
+      print(jsonEncode(transaction.toJson()));
+
       final appState = rootNavigatorKey.currentContext!.read<AppBloc>().state;
-      // Enviar al backend usando el repositorio
       final (error, success) = await _transactionsRepository.createTransaction(
         transaction: transaction,
         headers: appState.createHeaders(),
@@ -212,38 +215,59 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   List<TransactionItem> _buildTransactionItems(List<Product> cartItems) {
     return cartItems.map((product) {
       // Determinar el tipo de producto
-      final productType = (product.variants != null && product.variants!.isNotEmpty) ? 'variable' : 'simple';
+      final productType =
+          (product.variants != null && product.variants!.isNotEmpty)
+              ? 'variable'
+              : 'simple';
 
-      // Construir variaciones si existen
-      ProductVariations? variations;
+      // Construir datos de variante si existen
+      String? variantSku;
+      SelectedVariant? selectedVariant;
+
       if (product.variants != null && product.variants!.isNotEmpty) {
         final variant = product.variants!.first;
 
-        variations = ProductVariations(
-          color: variant.color != null
-              ? ColorVariation(
-                  name: variant.color!.name ?? '',
-                  code: variant.color!.code ?? '',
-                  image: null, // El modelo Colores no tiene campo de imagen
-                )
-              : null,
-          size: variant.size != null
-              ? SizeVariation(
-                  name: variant.size!,
-                  code: variant.size!,
-                )
-              : null,
-        );
+        // Asignar el SKU de la variante
+        variantSku = variant.sku;
+
+        // Construir selectedVariant solo con color si existe
+        if (variant.color != null) {
+          selectedVariant = SelectedVariant(
+            color: ColorVariation(
+              name: variant.color!.name ?? '',
+              code: variant.color!.code ?? '',
+            ),
+            size: variant.size,
+          );
+        }
       }
 
+      // Extraer el ID original del producto (sin el sufijo de variante)
+      final originalProductId = _extractOriginalProductId(product.id ?? '');
+
       return TransactionItem(
-        productId: product.id ?? '',
+        productId: originalProductId,
         productType: productType,
         quantity: product.quantity ?? 1,
         unitPrice: product.pricing?.salePrice?.toDouble() ?? 0.0,
         commission: product.pricing?.commission?.toDouble() ?? 0.0,
-        variations: variations,
+        variantSku: variantSku,
+        selectedVariant: selectedVariant,
       );
     }).toList();
+  }
+
+  /// Extrae el ID original del producto removiendo el sufijo de variante
+  /// Ejemplo: "691a1d942853a326a14b2b74_color_rojo_pasión_sku_ll-matte-red01" -> "691a1d942853a326a14b2b74"
+  String _extractOriginalProductId(String productId) {
+    // Si el ID contiene "_color_", "_size_" o "_sku_", es un ID modificado
+    if (productId.contains('_color_') ||
+        productId.contains('_size_') ||
+        productId.contains('_sku_')) {
+      // Extraer solo la primera parte antes del primer "_"
+      return productId.split('_').first;
+    }
+    // Si no tiene sufijos, devolver el ID tal cual
+    return productId;
   }
 }

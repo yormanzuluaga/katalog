@@ -37,9 +37,12 @@ class SubCategoryList extends StatelessWidget {
                     final category = state.subCategory!.subCategories![index];
                     return InkWell(
                       onTap: () {
-                        context
-                            .read<CategoryBloc>()
-                            .add(GetProductEvent(idProduct: category.id ?? ''));
+                        context.read<CategoryBloc>().add(
+                              GetProductEvent(
+                                idProduct: category.id ?? '',
+                                title: category.name,
+                              ),
+                            );
                       },
                       child: Column(
                         children: [

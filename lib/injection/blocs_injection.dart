@@ -5,7 +5,10 @@ void _initBlocsInjections() {
     () => AppBloc(),
   );
   sl.registerFactory(
-    () => CategoryBloc(categoryRepository: sl()),
+    () => CategoryBloc(
+      categoryRepository: sl(),
+      brandRepository: sl(),
+    ),
   );
 
   sl.registerFactory(
@@ -28,5 +31,29 @@ void _initBlocsInjections() {
   );
   sl.registerFactory(
     () => PaymentBloc(transactionsRepository: sl()),
+  );
+  sl.registerFactory(
+    () => ShippingOrdersBloc(shippingOrderRepository: sl()),
+  );
+  sl.registerFactory(
+    () => BalanceBloc(balanceRepository: sl()),
+  );
+  sl.registerFactory(
+    () => BrandBloc(brandRepository: sl()),
+  );
+  sl.registerFactory(
+    () => CatalogBloc(catalogRepository: sl()),
+  );
+  sl.registerFactory(
+    () => BannerBloc(bannerRepository: sl()),
+  );
+  sl.registerFactory(
+    () => ProfileBloc(userRepository: sl()),
+  );
+  sl.registerFactory(
+    () => WalletBloc(withdrawalRepository: sl()),
+  );
+  sl.registerFactory(
+    () => MyWithdrawalsBloc(withdrawalRepository: sl()),
   );
 }

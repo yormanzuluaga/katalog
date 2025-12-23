@@ -33,4 +33,16 @@ class RoutesNames {
   static const String subCategory = '/sub-category';
 
   static const String wallet = '/wallet';
+
+  static const String myCatalogs = '/my-catalogs';
+
+  static const String catalogDetail = '/catalog-detail';
+
+  /// Public catalog (no auth required)
+  static const String publicCatalog = '/catalogo/:catalogId';
+
+  /// Edit profile
+  static const String editProfile = '/edit-profile';
+
+  static const String myWithdrawals = '/my-withdrawals';
 }

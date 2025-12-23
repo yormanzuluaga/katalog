@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/cart/services/wompi_payment_service.dart';
-import 'package:talentpitch_test/feature/cart/widget/wompi_webview_screen.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class WompiPaymentScreenV2 extends StatefulWidget {
@@ -39,10 +38,42 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
     await WompiPaymentService.initialize();
   }
 
+  int _calculateTotalUnits() {
+    final cartItems = widget.orderData['cartItems'] as List?;
+    if (cartItems == null || cartItems.isEmpty) return 0;
+
+    int totalUnits = 0;
+    for (var item in cartItems) {
+      totalUnits += (item.quantity as int?) ?? 1;
+    }
+    return totalUnits;
+  }
+
+  double _calculateTotalProfit() {
+    final cartItems = widget.orderData['cartItems'] as List?;
+    if (cartItems == null || cartItems.isEmpty) return 0.0;
+
+    final totalUnits = _calculateTotalUnits();
+    final isWholesale = totalUnits >= 6;
+
+    double totalProfit = 0.0;
+    for (var item in cartItems) {
+      final commission = isWholesale
+          ? (item.pricing?.wholesaleCommission?.toDouble() ??
+              item.pricing?.commission?.toDouble() ??
+              0.0)
+          : (item.pricing?.commission?.toDouble() ?? 0.0);
+      final quantity = (item.quantity as int?) ?? 1;
+      totalProfit += commission * quantity;
+    }
+    return totalProfit;
+  }
+
   @override
   Widget build(BuildContext context) {
     var totalAmount = widget.orderData['totalPriceCop'] as double? ?? 0.0;
-    final customerEmail = widget.orderData['customerEmail'] as String? ?? 'test@test.com';
+    final customerEmail =
+        widget.orderData['customerEmail'] as String? ?? 'test@test.com';
 
     // Asegurar monto mínimo para pruebas de Wompi (mínimo 1500 COP)
     if (totalAmount < 1500.0) {
@@ -75,7 +106,8 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
                 const SizedBox(height: 30),
 
                 // Widget de pago Wompi
-                if (_selectedPaymentMethod == 'WOMPI_WIDGET') _buildWompiWidget(totalAmount, customerEmail),
+                if (_selectedPaymentMethod == 'WOMPI_WIDGET')
+                  _buildWompiWidget(totalAmount, customerEmail),
 
                 // Información temporal sobre firma de integridad
                 if (_selectedPaymentMethod != 'WOMPI_WIDGET')
@@ -91,7 +123,8 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
                       children: [
                         Row(
                           children: [
-                            FaIcon(Icons.info_outline, color: Colors.orange[700]),
+                            FaIcon(Icons.info_outline,
+                                color: Colors.orange[700]),
                             const SizedBox(width: 8),
                             Text(
                               'Información sobre pagos directos',
@@ -130,6 +163,9 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
 
   Widget _buildOrderSummary(double totalAmount) {
     final totalItems = widget.orderData['totalItems'] as int? ?? 0;
+    final totalUnits = _calculateTotalUnits();
+    final totalProfit = _calculateTotalProfit();
+    final isWholesale = totalUnits >= 6;
 
     return Container(
       width: double.infinity,
@@ -180,6 +216,65 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
             ],
           ),
           const Divider(height: 20),
+          // Ganancia
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.trending_up,
+                      size: 18,
+                      color: Colors.green[700],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      isWholesale ? 'Tu ganancia por mayor' : 'Tu ganancia',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    if (isWholesale) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Por Mayor',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                Text(
+                  _currencyFormat.format(totalProfit),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -263,7 +358,9 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryMain.withOpacity(0.15) : Colors.grey[100],
+                color: isSelected
+                    ? AppColors.primaryMain.withOpacity(0.15)
+                    : Colors.grey[100],
                 borderRadius: BorderRadius.circular(8),
               ),
               child: FaIcon(
@@ -284,13 +381,16 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? AppColors.primaryMain : Colors.black87,
+                          color: isSelected
+                              ? AppColors.primaryMain
+                              : Colors.black87,
                         ),
                       ),
                       if (isRecommended) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.green,
                             borderRadius: BorderRadius.circular(4),
@@ -496,7 +596,9 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _isProcessing ? null : () => _processPaymentWithWidget(totalAmount, customerEmail),
+              onPressed: _isProcessing
+                  ? null
+                  : () => _processPaymentWithWidget(totalAmount, customerEmail),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green[600],
                 foregroundColor: Colors.white,
@@ -515,7 +617,8 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -575,7 +678,8 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
     );
   }
 
-  Future<void> _processPaymentWithWidget(double totalAmount, String customerEmail) async {
+  Future<void> _processPaymentWithWidget(
+      double totalAmount, String customerEmail) async {
     print('💳 ====== INICIANDO PAGO CON WIDGET WOMPI ======');
     print('💰 Monto: $totalAmount COP');
     print('📧 Email: $customerEmail');
@@ -615,10 +719,14 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
         'reference': reference,
         'acceptance-token': acceptanceToken,
         'customer-email': customerEmail,
-        'redirect-url': 'https://myapp.payment/success?ref=$reference', // URL personalizada de éxito
-        'fail-url': 'https://myapp.payment/error?ref=$reference', // URL personalizada de error
-        'cancel-url': 'https://myapp.payment/cancel?ref=$reference', // URL personalizada de cancelación
-        'signature:integrity': signature, // Formato correcto según documentación oficial de Wompi
+        'redirect-url':
+            'https://myapp.payment/success?ref=$reference', // URL personalizada de éxito
+        'fail-url':
+            'https://myapp.payment/error?ref=$reference', // URL personalizada de error
+        'cancel-url':
+            'https://myapp.payment/cancel?ref=$reference', // URL personalizada de cancelación
+        'signature:integrity':
+            signature, // Formato correcto según documentación oficial de Wompi
       };
 
       final fullUrl = checkoutUrl.replace(queryParameters: queryParams);
@@ -627,7 +735,8 @@ class _WompiPaymentScreenV2State extends State<WompiPaymentScreenV2> {
       print('🚀 Abriendo widget de Wompi en WebView...');
 
       // Obtener datos necesarios del orderData
-      final shippingAddressId = widget.orderData['shippingAddressId'] as String? ?? '';
+      final shippingAddressId =
+          widget.orderData['shippingAddressId'] as String? ?? '';
       final cartItems = widget.orderData['cartItems'] as List? ?? [];
 
       // Navegar al WebView de Wompi

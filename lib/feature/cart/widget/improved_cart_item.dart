@@ -10,6 +10,8 @@ class ImprovedCartItem extends StatelessWidget {
   final String? imageUrl;
   final double price;
   final double costPrice;
+  final double? wholesaleCostPrice;
+  final bool isWholesale;
   final int quantity;
   final VoidCallback onRemove;
   final Function(int) onQuantityChanged;
@@ -22,6 +24,8 @@ class ImprovedCartItem extends StatelessWidget {
     this.imageUrl,
     required this.price,
     required this.costPrice,
+    this.wholesaleCostPrice,
+    this.isWholesale = false,
     required this.quantity,
     required this.onRemove,
     required this.onQuantityChanged,
@@ -29,7 +33,6 @@ class ImprovedCartItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profit = (price - costPrice) * quantity;
     final totalPrice = price * quantity;
 
     return Container(
@@ -100,7 +103,8 @@ class ImprovedCartItem extends StatelessWidget {
                                       color: Colors.black87,
                                     ),
                                   ),
-                                  if (subtitle != null && subtitle!.isNotEmpty) ...[
+                                  if (subtitle != null &&
+                                      subtitle!.isNotEmpty) ...[
                                     const SizedBox(height: 4),
                                     Text(
                                       subtitle!,
@@ -110,7 +114,8 @@ class ImprovedCartItem extends StatelessWidget {
                                       ),
                                     ),
                                   ],
-                                  if (variantInfo != null && variantInfo!.isNotEmpty) ...[
+                                  if (variantInfo != null &&
+                                      variantInfo!.isNotEmpty) ...[
                                     const SizedBox(height: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -118,7 +123,8 @@ class ImprovedCartItem extends StatelessWidget {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.secondary.withOpacity(0.1),
+                                        color: AppColors.secondary
+                                            .withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -188,14 +194,17 @@ class ImprovedCartItem extends StatelessWidget {
                               child: Row(
                                 children: [
                                   IconButton(
-                                    onPressed: quantity > 1 ? () => onQuantityChanged(quantity - 1) : null,
+                                    onPressed: quantity > 1
+                                        ? () => onQuantityChanged(quantity - 1)
+                                        : null,
                                     icon: const Icon(Icons.remove, size: 18),
                                     color: AppColors.primaryMain,
                                     padding: const EdgeInsets.all(8),
                                     constraints: const BoxConstraints(),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12),
                                     child: Text(
                                       quantity.toString(),
                                       style: const TextStyle(
@@ -206,7 +215,8 @@ class ImprovedCartItem extends StatelessWidget {
                                     ),
                                   ),
                                   IconButton(
-                                    onPressed: () => onQuantityChanged(quantity + 1),
+                                    onPressed: () =>
+                                        onQuantityChanged(quantity + 1),
                                     icon: const Icon(Icons.add, size: 18),
                                     color: AppColors.primaryMain,
                                     padding: const EdgeInsets.all(8),
@@ -248,7 +258,7 @@ class ImprovedCartItem extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Ganancia:',
+                      isWholesale ? 'Ganancia por mayor:' : 'Ganancia:',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.green[700],
@@ -256,14 +266,34 @@ class ImprovedCartItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      '\$${_formatNumber(costPrice.toInt())}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green[700],
+                    if (isWholesale && wholesaleCostPrice != null) ...[
+                      Text(
+                        '\$${_formatNumber(costPrice.toInt())}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                          decoration: TextDecoration.lineThrough,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '\$${_formatNumber(wholesaleCostPrice!.toInt())}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        '\$${_formatNumber(costPrice.toInt())}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
+                        ),
+                      ),
                   ],
                 ),
                 // Total

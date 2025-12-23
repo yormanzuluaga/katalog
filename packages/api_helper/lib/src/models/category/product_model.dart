@@ -4,34 +4,82 @@ class ProductModel {
   int? allProduct;
   List<Product>? product;
   String? type;
+  List<String>? availableFilters;
+  bool? success;
+  int? total;
+  String? filter;
+  Pagination? pagination;
 
   ProductModel({
     this.allProduct,
     this.product,
     this.type,
+    this.availableFilters,
+    this.success,
+    this.total,
+    this.filter,
+    this.pagination,
   });
 
   ProductModel copyWith({
     int? allProduct,
     List<Product>? product,
     String? type,
+    List<String>? availableFilters,
+    bool? success,
+    int? total,
+    String? filter,
+    Pagination? pagination,
   }) =>
       ProductModel(
         allProduct: allProduct ?? this.allProduct,
         product: product ?? this.product,
         type: type ?? this.type,
+        availableFilters: availableFilters ?? this.availableFilters,
+        success: success ?? this.success,
+        total: total ?? this.total,
+        filter: filter ?? this.filter,
+        pagination: pagination ?? this.pagination,
       );
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
-        allProduct: json["allProduct"],
-        product: json["product"] != null ? List<Product>.from(json["product"].map((x) => Product.fromJson(x))) : null,
-        type: json["type"],
-      );
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    // Manejar respuesta de filtro (con "products") o respuesta normal (con "product")
+    List<Product>? productList;
+    if (json["products"] != null) {
+      productList =
+          List<Product>.from(json["products"].map((x) => Product.fromJson(x)));
+    } else if (json["product"] != null) {
+      productList =
+          List<Product>.from(json["product"].map((x) => Product.fromJson(x)));
+    }
+
+    return ProductModel(
+      allProduct: json["allProduct"] ?? json["total"],
+      product: productList,
+      type: json["type"],
+      availableFilters: json["availableFilters"] != null
+          ? List<String>.from(json["availableFilters"])
+          : null,
+      success: json["success"],
+      total: json["total"],
+      filter: json["filter"],
+      pagination: json["pagination"] != null
+          ? Pagination.fromJson(json["pagination"])
+          : null,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "allProduct": allProduct,
         "product": List<dynamic>.from(product?.map((x) => x.toJson()) ?? []),
         "type": type,
+        "availableFilters": availableFilters != null
+            ? List<dynamic>.from(availableFilters!)
+            : null,
+        "success": success,
+        "total": total,
+        "filter": filter,
+        "pagination": pagination?.toJson(),
       };
 }
 
@@ -176,11 +224,15 @@ class Product {
 
     final user = json["user"] != null ? Users.fromJson(json["user"]) : null;
 
-    final subCategory = json["subCategory"] != null ? _parseSubCategoryFromProduct(json["subCategory"]) : null;
+    final subCategory = json["subCategory"] != null
+        ? _parseSubCategoryFromProduct(json["subCategory"])
+        : null;
 
-    final pricing = json["pricing"] != null ? Pricing.fromJson(json["pricing"]) : null;
+    final pricing =
+        json["pricing"] != null ? Pricing.fromJson(json["pricing"]) : null;
 
-    final points = json["points"] != null ? Points.fromJson(json["points"]) : null;
+    final points =
+        json["points"] != null ? Points.fromJson(json["points"]) : null;
 
     final variants = json["variants"] != null
         ? List<Variant>.from(json["variants"].map((x) {
@@ -188,18 +240,24 @@ class Product {
           }))
         : null;
 
-    final simpleProduct = json["simpleProduct"] != null ? SimpleProduct.fromJson(json["simpleProduct"]) : null;
+    final simpleProduct = json["simpleProduct"] != null
+        ? SimpleProduct.fromJson(json["simpleProduct"])
+        : null;
     final discount = json["discount"] != null
         ? List<Discount>.from(json["discount"].map((x) {
             return Discount.fromJson(x);
           }))
         : null;
 
-    final details = json["details"] != null ? Details.fromJson(json["details"]) : null;
+    final details =
+        json["details"] != null ? Details.fromJson(json["details"]) : null;
 
-    final warranty = json["warranty"] != null ? Warranty.fromJson(json["warranty"]) : null;
+    final warranty =
+        json["warranty"] != null ? Warranty.fromJson(json["warranty"]) : null;
 
-    final images = json["images"] != null ? List<String>.from(json["images"].map((x) => x)) : null;
+    final images = json["images"] != null
+        ? List<String>.from(json["images"].map((x) => x))
+        : null;
 
     return Product(
       id: id,
@@ -227,8 +285,10 @@ class Product {
       img: json["img"],
       images: images,
       productType: json["productType"],
-      createdAt: json["createdAt"] != null ? DateTime.parse(json["createdAt"]) : null,
-      updatedAt: json["updatedAt"] != null ? DateTime.parse(json["updatedAt"]) : null,
+      createdAt:
+          json["createdAt"] != null ? DateTime.parse(json["createdAt"]) : null,
+      updatedAt:
+          json["updatedAt"] != null ? DateTime.parse(json["updatedAt"]) : null,
     );
   }
 
@@ -237,7 +297,9 @@ class Product {
       id: json["_id"],
       name: json["name"],
       description: null,
-      category: json["category"] != null ? Categorys.fromJson(json["category"]) : null,
+      category: json["category"] != null
+          ? Categorys.fromJson(json["category"])
+          : null,
       img: null,
       estado: null,
       user: null,
@@ -268,23 +330,32 @@ class Product {
         "brand": brand?.toJson(),
         "urlVideo": urlVideo,
         "estado": estado,
-        "countryCodes": countryCodes != null ? List<dynamic>.from(countryCodes!.map((x) => x.toJson())) : null,
-        "cities": cities != null ? List<dynamic>.from(cities!.map((x) => x.toJson())) : null,
+        "countryCodes": countryCodes != null
+            ? List<dynamic>.from(countryCodes!.map((x) => x.toJson()))
+            : null,
+        "cities": cities != null
+            ? List<dynamic>.from(cities!.map((x) => x.toJson()))
+            : null,
         "user": user?.toJson(),
         "subCategory": subCategory?.toJson(),
         "basePrice": basePrice,
         "pricing": pricing?.toJson(),
         "points": points?.toJson(),
-        "variants": variants != null ? List<dynamic>.from(variants!.map((x) => x.toJson())) : null,
+        "variants": variants != null
+            ? List<dynamic>.from(variants!.map((x) => x.toJson()))
+            : null,
         "simpleProduct": simpleProduct?.toJson(),
-        "discount": discount != null ? List<dynamic>.from(discount!.map((x) => x.toJson())) : null,
+        "discount": discount != null
+            ? List<dynamic>.from(discount!.map((x) => x.toJson()))
+            : null,
         "deliveryTime": deliveryTime,
         "description": description,
         "details": details?.toJson(),
         "warranty": warranty?.toJson(),
         "available": available,
         "img": img,
-        "images": images != null ? List<dynamic>.from(images!.map((x) => x)) : null,
+        "images":
+            images != null ? List<dynamic>.from(images!.map((x) => x)) : null,
         "productType": productType,
         "createdAt": createdAt?.toIso8601String(),
         "updatedAt": updatedAt?.toIso8601String(),
@@ -421,15 +492,20 @@ class Details {
               return Specification.fromJson(x);
             }))
           : null,
-      features: json["features"] != null ? List<String>.from(json["features"].map((x) => x)) : null,
-      included: json["included"] != null ? List<String>.from(json["included"].map((x) => x)) : null,
+      features: json["features"] != null
+          ? List<String>.from(json["features"].map((x) => x))
+          : null,
+      included: json["included"] != null
+          ? List<String>.from(json["included"].map((x) => x))
+          : null,
       instructions: json["instructions"],
       careInstructions: json["careInstructions"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-        "specifications": List<dynamic>.from(specifications!.map((x) => x.toJson())),
+        "specifications":
+            List<dynamic>.from(specifications!.map((x) => x.toJson())),
         "features": List<dynamic>.from(features!.map((x) => x)),
         "included": List<dynamic>.from(included!.map((x) => x)),
         "instructions": instructions,
@@ -516,8 +592,11 @@ class Discount {
         id: json["_id"],
         type: json["type"],
         value: json["value"],
-        startDate: json["startDate"] != null ? DateTime.parse(json["startDate"]) : null,
-        endDate: json["endDate"] != null ? DateTime.parse(json["endDate"]) : null,
+        startDate: json["startDate"] != null
+            ? DateTime.parse(json["startDate"])
+            : null,
+        endDate:
+            json["endDate"] != null ? DateTime.parse(json["endDate"]) : null,
         minQuantity: json["minQuantity"],
       );
 
@@ -565,12 +644,16 @@ class Pricing {
   int? costPrice;
   int? salePrice;
   int? commission;
+  int? wholesaleCommission;
+  int? specialClientCommission;
 
   Pricing({
     this.profit,
     this.costPrice,
     this.salePrice,
     this.commission,
+    this.wholesaleCommission,
+    this.specialClientCommission,
   });
 
   Pricing copyWith({
@@ -578,19 +661,26 @@ class Pricing {
     int? costPrice,
     int? salePrice,
     int? commission,
+    int? wholesaleCommission,
+    int? specialClientCommission,
   }) =>
       Pricing(
         profit: profit ?? this.profit,
         costPrice: costPrice ?? this.costPrice,
         salePrice: salePrice ?? this.salePrice,
         commission: commission ?? this.commission,
+        wholesaleCommission: wholesaleCommission ?? this.wholesaleCommission,
+        specialClientCommission:
+            specialClientCommission ?? this.specialClientCommission,
       );
 
   factory Pricing.fromJson(Map<String, dynamic> json) => Pricing(
-        profit: Profit.fromJson(json["profit"]),
+        profit: json["profit"] != null ? Profit.fromJson(json["profit"]) : null,
         costPrice: json["costPrice"],
         salePrice: json["salePrice"],
         commission: json["commission"],
+        wholesaleCommission: json["wholesaleCommission"],
+        specialClientCommission: json["specialClientCommission"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -598,6 +688,8 @@ class Pricing {
         "costPrice": costPrice,
         "salePrice": salePrice,
         "commission": commission,
+        "wholesaleCommission": wholesaleCommission,
+        "specialClientCommission": specialClientCommission,
       };
 }
 
@@ -737,11 +829,16 @@ class Variant {
       sku: json["sku"],
       color: json["color"] != null ? Colores.fromJson(json["color"]) : null,
       size: json["size"],
-      measurements: json["measurements"] != null ? Measurements.fromJson(json["measurements"]) : null,
-      pricing: json["pricing"] != null ? Pricing.fromJson(json["pricing"]) : null,
+      measurements: json["measurements"] != null
+          ? Measurements.fromJson(json["measurements"])
+          : null,
+      pricing:
+          json["pricing"] != null ? Pricing.fromJson(json["pricing"]) : null,
       points: json["points"] != null ? Points.fromJson(json["points"]) : null,
       stock: json["stock"],
-      images: json["images"] != null ? List<dynamic>.from(json["images"].map((x) => x)) : null,
+      images: json["images"] != null
+          ? List<dynamic>.from(json["images"].map((x) => x))
+          : null,
       barcode: json["barcode"],
       available: json["available"],
     );
@@ -756,7 +853,8 @@ class Variant {
         "pricing": pricing?.toJson(),
         "points": points?.toJson(),
         "stock": stock,
-        "images": images != null ? List<dynamic>.from(images!.map((x) => x)) : null,
+        "images":
+            images != null ? List<dynamic>.from(images!.map((x) => x)) : null,
         "barcode": barcode,
         "available": available,
       };
@@ -854,7 +952,8 @@ class Warranty {
         type: json["type"],
         coverage: List<String>.from(json["coverage"].map((x) => x)),
         exclusions: List<String>.from(json["exclusions"].map((x) => x)),
-        contact: json["contact"] == null ? null : Contact.fromJson(json["contact"]),
+        contact:
+            json["contact"] == null ? null : Contact.fromJson(json["contact"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -922,5 +1021,40 @@ class Durations {
   Map<String, dynamic> toJson() => {
         "value": value,
         "unit": unit,
+      };
+}
+
+class Pagination {
+  int? limit;
+  int? from;
+  bool? hasMore;
+
+  Pagination({
+    this.limit,
+    this.from,
+    this.hasMore,
+  });
+
+  Pagination copyWith({
+    int? limit,
+    int? from,
+    bool? hasMore,
+  }) =>
+      Pagination(
+        limit: limit ?? this.limit,
+        from: from ?? this.from,
+        hasMore: hasMore ?? this.hasMore,
+      );
+
+  factory Pagination.fromJson(Map<String, dynamic> json) => Pagination(
+        limit: json["limit"],
+        from: json["from"],
+        hasMore: json["hasMore"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "limit": limit,
+        "from": from,
+        "hasMore": hasMore,
       };
 }

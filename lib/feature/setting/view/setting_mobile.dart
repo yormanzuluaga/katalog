@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:talentpitch_test/app/bloc/app_bloc.dart';
+import 'package:talentpitch_test/app/routes/routes_names.dart';
+import 'package:talentpitch_test/core/database/user_store.dart';
 import 'package:talentpitch_test/feature/setting/bloc/setting_bloc.dart';
 import 'package:talentpitch_test/injection/injection_container.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
@@ -20,30 +23,52 @@ class SettingMobile extends StatelessWidget {
               padding: const EdgeInsets.only(top: 12, left: 8, bottom: 12),
               child: BlocBuilder<AppBloc, AppState>(
                 builder: (context, state) {
+                  final userStore = UserStore.instance;
+                  final avatar = userStore.avatar;
+                  final firstName = userStore.firstName;
+                  final lastName = userStore.lastName;
+                  final fullName = firstName.isNotEmpty
+                      ? '$firstName $lastName'.trim()
+                      : 'Usuario';
+
                   return Row(
                     children: [
                       CircleAvatar(
                         backgroundColor: Colors.grey.shade300,
-                        backgroundImage:
-                            // avatar != ''
-                            //     ? NetworkImage(avatar)
-                            //     :
-                            const NetworkImage(
+                        backgroundImage: avatar.isNotEmpty
+                            ? NetworkImage(avatar)
+                            : const NetworkImage(
                                 "https://gravatar.com/avatar/8d3906acfe8aa2650ba9456258216bfd?s=400&d=mp&r=x"),
                         radius: 40,
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 16,
                       ),
-                      Text(
-                        //  firstName != '' ? '$firstName $lastName' :
-                        'Hola',
-                        style: const TextStyle(
-                          color: AppColors.primaryMain,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hola, $fullName',
+                              style: const TextStyle(
+                                color: AppColors.primaryMain,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (userStore.email.isNotEmpty)
+                              Text(
+                                userStore.email,
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
                         ),
-                      )
+                      ),
                     ],
                   );
                 },
@@ -93,7 +118,7 @@ class SettingMobile extends StatelessWidget {
                       ],
                     ),
                     onTap: () {
-                      //Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePages()));
+                      context.push(RoutesNames.editProfile);
                     },
                   ),
                 ),

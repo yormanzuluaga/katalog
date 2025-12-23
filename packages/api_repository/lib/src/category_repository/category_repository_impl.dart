@@ -56,4 +56,23 @@ class CategoryRepositoryImpl extends CategoryRepository {
     }
     return Future.value((null, rightResponse));
   }
+
+  @override
+  Future<(ApiException?, ProductModel?)> getProductByFilter({
+    required String idProduct,
+    required String filter,
+    Map<String, String>? headers,
+  }) async {
+    final movieModel = await categoryResource.getProductByFilter(
+      idProduct: idProduct,
+      filter: filter,
+      headers: headers,
+    );
+    final leftResponse = movieModel.$1;
+    final rightResponse = movieModel.$2;
+    if (leftResponse != null || rightResponse == null) {
+      return Future.value((leftResponse, null));
+    }
+    return Future.value((null, rightResponse));
+  }
 }

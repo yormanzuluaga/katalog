@@ -7,6 +7,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:talentpitch_test/app/routes/routes_names.dart';
 import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
+import 'package:talentpitch_test/feature/catalog/bloc/catalog/catalog_bloc.dart';
+import 'package:talentpitch_test/feature/catalog/view/create_catalog_dialog.dart';
 import 'package:talentpitch_test/feature/home/bloc/home_bloc.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
@@ -43,9 +45,11 @@ class _HomeMobileState extends State<HomeMobile> {
         currentLocation != RoutesNames.product &&
         currentLocation != RoutesNames.cart &&
         currentLocation != RoutesNames.wallet &&
+        currentLocation != RoutesNames.myCatalogs &&
         currentLocation != RoutesNames.setting;
 
-    final showBackButton = routesWithBackButton.contains(currentLocation) || isNestedRoute;
+    final showBackButton =
+        routesWithBackButton.contains(currentLocation) || isNestedRoute;
 
     return Scaffold(
       appBar: AppBar(
@@ -72,7 +76,9 @@ class _HomeMobileState extends State<HomeMobile> {
                       ? 'Mi billetera'
                       : state.index == 2
                           ? 'Venta en curso'
-                          : 'Configuración',
+                          : state.index == 3
+                              ? 'Mi catalogo'
+                              : 'Configuración',
               style: APTextStyle.textXS.bold.copyWith(
                 color: AppColors.primaryMain,
                 fontSize: 24,
@@ -121,6 +127,13 @@ class _HomeMobileState extends State<HomeMobile> {
       ),
       backgroundColor: AppColors.whiteTechnical,
       body: SafeArea(child: widget.child),
+      floatingActionButton: currentLocation != RoutesNames.myCatalogs
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _showCreateCatalogDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Crear Catálogo'),
+            ),
       bottomNavigationBar: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
           return BlocBuilder<CartBloc, CartState>(
@@ -128,8 +141,10 @@ class _HomeMobileState extends State<HomeMobile> {
               return BottomNavigationBar(
                 backgroundColor: AppColors.whiteTechnical,
                 elevation: 0,
-                selectedIconTheme: const IconThemeData(color: AppColors.primaryMain),
-                unselectedIconTheme: const IconThemeData(color: AppColors.secondary),
+                selectedIconTheme:
+                    const IconThemeData(color: AppColors.primaryMain),
+                unselectedIconTheme:
+                    const IconThemeData(color: AppColors.secondary),
                 selectedItemColor: AppColors.primaryMain,
                 unselectedItemColor: AppColors.secondary,
                 items: listOfStrings.asMap().entries.map((entry) {
@@ -137,7 +152,9 @@ class _HomeMobileState extends State<HomeMobile> {
                   final label = entry.value;
 
                   // Mostrar badge solo en el ícono del carrito (índice 2)
-                  final showBadge = index == 2 && cartState.listSale != null && cartState.listSale!.isNotEmpty;
+                  final showBadge = index == 2 &&
+                      cartState.listSale != null &&
+                      cartState.listSale!.isNotEmpty;
 
                   return BottomNavigationBarItem(
                     icon: Stack(
@@ -190,6 +207,9 @@ class _HomeMobileState extends State<HomeMobile> {
                       context.go(RoutesNames.cart);
                       break;
                     case 3:
+                      context.go(RoutesNames.myCatalogs);
+                      break;
+                    case 4:
                       context.go(RoutesNames.setting);
                       break;
                   }
@@ -348,11 +368,23 @@ class _HomeMobileState extends State<HomeMobile> {
     );
   }
 
+  void _showCreateCatalogDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (dialogContext) => BlocProvider.value(
+        value: context.read<CatalogBloc>(),
+        child: const CreateCatalogDialog(),
+      ),
+    );
+  }
+
   List<IconData> listOfIcons = [
     FontAwesomeIcons.house,
     FontAwesomeIcons.wallet,
     FontAwesomeIcons.truck,
-    //  FontAwesomeIcons.shoppingBag,
+    FontAwesomeIcons.shoppingBag,
     FontAwesomeIcons.cog,
   ];
 
@@ -360,7 +392,7 @@ class _HomeMobileState extends State<HomeMobile> {
     'Inicio',
     'Billetera',
     'Tu pedido',
-    //  'catálogo',
+    'Catálogos',
     'Cuenta',
   ];
 }

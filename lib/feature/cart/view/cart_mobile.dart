@@ -14,7 +14,8 @@ class CartMobile extends StatefulWidget {
   CartMobileState createState() => CartMobileState();
 }
 
-class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMixin {
+class CartMobileState extends State<CartMobile>
+    with SingleTickerProviderStateMixin {
   late final AnimationController animationController;
   late int quantityData;
 
@@ -28,16 +29,35 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
     super.initState();
   }
 
+  int _calculateTotalUnits(CartState state) {
+    if (state.listSale == null || state.listSale!.isEmpty) {
+      return 0;
+    }
+
+    int totalUnits = 0;
+    for (var product in state.listSale!) {
+      totalUnits += product.quantity ?? 1;
+    }
+    return totalUnits;
+  }
+
   String _calculateTotalProfit(CartState state) {
     if (state.listSale == null || state.listSale!.isEmpty) {
       return '0';
     }
 
+    final totalUnits = _calculateTotalUnits(state);
+    final isWholesale = totalUnits >= 6;
+
     double totalProfit = 0;
     for (var product in state.listSale!) {
-      final costPrice = product.pricing?.commission?.toDouble() ?? 0.0;
+      final commission = isWholesale
+          ? (product.pricing?.wholesaleCommission?.toDouble() ??
+              product.pricing?.commission?.toDouble() ??
+              0.0)
+          : (product.pricing?.commission?.toDouble() ?? 0.0);
       final quantity = product.quantity ?? 1;
-      final profit = (costPrice) * quantity;
+      final profit = commission * quantity;
       totalProfit += profit;
     }
 
@@ -78,7 +98,8 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                     // ),
                     //SizedBox(height: 16),
                     Flexible(
-                      child: state.listSale != null && state.listSale!.isNotEmpty
+                      child: state.listSale != null &&
+                              state.listSale!.isNotEmpty
                           ? ListView.builder(
                               padding: const EdgeInsets.all(0.0),
                               physics: const BouncingScrollPhysics(),
@@ -89,36 +110,54 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
 
                                 // Obtener información de la variante si está disponible
                                 String variantInfo = '';
-                                if (data.variants != null && data.variants!.isNotEmpty) {
+                                if (data.variants != null &&
+                                    data.variants!.isNotEmpty) {
                                   final variant = data.variants!.first;
                                   List<String> variantDetails = [];
 
                                   if (variant.color?.name != null) {
-                                    variantDetails.add('Color: ${variant.color!.name}');
+                                    variantDetails
+                                        .add('Color: ${variant.color!.name}');
                                   }
                                   if (variant.size != null) {
-                                    variantDetails.add('Talla: ${variant.size}');
+                                    variantDetails
+                                        .add('Talla: ${variant.size}');
                                   }
 
                                   variantInfo = variantDetails.join(' • ');
-                                } else if (data.id != null && data.id!.contains('color_')) {
+                                } else if (data.id != null &&
+                                    data.id!.contains('color_')) {
                                   // Si no hay variantes explícitas, extraer del ID
                                   final idParts = data.id!.split('_');
                                   for (int i = 0; i < idParts.length; i++) {
-                                    if (idParts[i] == 'color' && i + 1 < idParts.length) {
-                                      variantInfo = 'Color: ${idParts[i + 1].replaceAll('_', ' ')}';
+                                    if (idParts[i] == 'color' &&
+                                        i + 1 < idParts.length) {
+                                      variantInfo =
+                                          'Color: ${idParts[i + 1].replaceAll('_', ' ')}';
                                       break;
                                     }
                                   }
                                 }
 
+                                final totalUnits = _calculateTotalUnits(state);
+                                final isWholesale = totalUnits >= 6;
+
                                 return ImprovedCartItem(
                                   title: data.name ?? 'Producto',
                                   subtitle: data.brand?.name ?? '',
-                                  variantInfo: variantInfo.isNotEmpty ? variantInfo : null,
+                                  variantInfo: variantInfo.isNotEmpty
+                                      ? variantInfo
+                                      : null,
                                   imageUrl: data.img,
-                                  price: data.pricing?.salePrice?.toDouble() ?? 0.0,
-                                  costPrice: data.pricing?.commission?.toDouble() ?? 0.0,
+                                  price: data.pricing?.salePrice?.toDouble() ??
+                                      0.0,
+                                  costPrice:
+                                      data.pricing?.commission?.toDouble() ??
+                                          0.0,
+                                  wholesaleCostPrice: data
+                                      .pricing?.wholesaleCommission
+                                      ?.toDouble(),
+                                  isWholesale: isWholesale,
                                   quantity: data.quantity ?? 1,
                                   onRemove: () {
                                     context.read<CartBloc>().add(
@@ -146,11 +185,13 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                                 ),
                                 const SizedBox(height: 8),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32),
                                   child: Text(
                                     'Aún no has agregado ningún artículo al camión',
                                     textAlign: TextAlign.center,
-                                    style: APTextStyle.textLG.semibold.copyWith(),
+                                    style:
+                                        APTextStyle.textLG.semibold.copyWith(),
                                   ),
                                 )
                               ],
@@ -192,6 +233,23 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                                 color: Colors.green.shade700,
                               ),
                             ),
+                            if (_calculateTotalUnits(state) >= 6) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'Por Mayor',
+                                  style: APTextStyle.textXS.semibold.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -226,12 +284,13 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                                 Icon(
                                   Icons.local_shipping,
                                   size: 18,
-                                  color:
-                                      double.parse(state.sumTotal) >= 100000 ? Colors.green.shade700 : Colors.grey[700],
+                                  color: double.parse(state.sumTotal) >= 100000
+                                      ? Colors.green.shade700
+                                      : Colors.grey[700],
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Envío',
+                                  'Envío gratis mayor a 100.00 mil pesos',
                                   style: APTextStyle.textSM.medium.copyWith(
                                     color: Colors.grey[700],
                                   ),
@@ -239,9 +298,13 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                               ],
                             ),
                             Text(
-                              double.parse(state.sumTotal) >= 100000 ? 'Gratis' : '\$15.000',
+                              double.parse(state.sumTotal) >= 100000
+                                  ? 'Gratis'
+                                  : '\$15.000',
                               style: APTextStyle.textLG.bold.copyWith(
-                                color: double.parse(state.sumTotal) >= 100000 ? Colors.green.shade700 : Colors.black87,
+                                color: double.parse(state.sumTotal) >= 100000
+                                    ? Colors.green.shade700
+                                    : Colors.black87,
                               ),
                             ),
                           ],
@@ -264,7 +327,9 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Tu ganancia',
+                                  _calculateTotalUnits(state) >= 6
+                                      ? 'Tu ganancia por mayor'
+                                      : 'Tu ganancia',
                                   style: APTextStyle.textSM.semibold.copyWith(
                                     color: Colors.green.shade700,
                                   ),
@@ -296,22 +361,23 @@ class CartMobileState extends State<CartMobile> with SingleTickerProviderStateMi
                   // ),
                   // SizedBox(height: MediaQuery.of(context).size.height / 64),
                   AppButton.primary(
-                    onPressed: state.listSale != null && state.listSale!.isNotEmpty
-                        ? () {
-                            // Calcular el total de artículos y precio (incluyendo envío)
-                            final totalItems = state.listSale!.length;
-                            final totalPrice = _calculateFinalTotal(state);
+                    onPressed:
+                        state.listSale != null && state.listSale!.isNotEmpty
+                            ? () {
+                                // Calcular el total de artículos y precio (incluyendo envío)
+                                final totalItems = state.listSale!.length;
+                                final totalPrice = _calculateFinalTotal(state);
 
-                            // Navegar a la selección de direcciones
-                            context.push(
-                              RoutesNames.addressSelection,
-                              extra: {
-                                'totalItems': totalItems,
-                                'totalPriceCop': totalPrice,
-                              },
-                            );
-                          }
-                        : null,
+                                // Navegar a la selección de direcciones
+                                context.push(
+                                  RoutesNames.addressSelection,
+                                  extra: {
+                                    'totalItems': totalItems,
+                                    'totalPriceCop': totalPrice,
+                                  },
+                                );
+                              }
+                            : null,
                     title: 'Proceso de pago',
                   ),
                   SizedBox(height: 8),

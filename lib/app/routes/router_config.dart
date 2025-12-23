@@ -10,11 +10,17 @@ import 'package:talentpitch_test/feature/cart/widget/payment_success_screen.dart
 import 'package:talentpitch_test/feature/cart/widget/payment_rejected_screen.dart';
 import 'package:talentpitch_test/feature/cart/widget/wompi_webview_screen.dart';
 import 'package:talentpitch_test/feature/cart/bloc/payment/payment_bloc.dart';
+import 'package:talentpitch_test/feature/catalog/view/catalog_detail_page.dart';
+import 'package:talentpitch_test/feature/catalog/view/public_catalog_page.dart';
 import 'package:talentpitch_test/feature/product/view/product_page.dart';
 import 'package:talentpitch_test/feature/product/widget/product_list.dart';
 import 'package:talentpitch_test/feature/product/widget/sub_category_list.dart';
+import 'package:talentpitch_test/feature/product/bloc/product/product_bloc.dart';
 import 'package:talentpitch_test/feature/setting/view/setting_page.dart';
+import 'package:talentpitch_test/feature/setting/view/edit_profile_page.dart';
 import 'package:talentpitch_test/feature/wallet/view/wallet_page.dart';
+import 'package:talentpitch_test/feature/catalog/view/my_catalogs_page.dart';
+import 'package:talentpitch_test/feature/wallet/widget/my_withdrawals.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,21 +36,27 @@ part 'router_handlers.dart';
 /// Navigator keys
 /// The `healthNavigatorKey` is a global key that is used to access the
 /// management navigator.
-final healthNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'health_navigator');
-final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root_navigator');
-final homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home_navigator');
+final healthNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'health_navigator');
+final rootNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'root_navigator');
+final homeNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'home_navigator');
 
 /// The `managementNavigatorKey` is a global key that is used to access the
 /// management navigator.
-final managementNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'management_navigator');
+final managementNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'management_navigator');
 
 /// The rootScaffoldMessengerKey is a global key that is used to access the
 /// rootScaffold navigator.
-final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>(debugLabel: 'root_scaffold_messenger');
+final rootScaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>(debugLabel: 'root_scaffold_messenger');
 
 /// Insert in this array all the routes that need to be accessible without login.
 final routingExceptions = [
   //RoutesNames.credential,
+  '/catalogo', // Allow public catalog access
 ];
 
 class CustomRouterConfig {
@@ -53,7 +65,13 @@ class CustomRouterConfig {
     navigatorKey: rootNavigatorKey,
     initialLocation: RoutesNames.login,
     redirect: (context, state) {
-      if (LoginStore.instance.accessToken.isEmpty && !routingExceptions.contains(state.matchedLocation)) {
+      // Allow access to public catalog routes without login
+      if (state.matchedLocation.startsWith('/catalogo/')) {
+        return null;
+      }
+
+      if (LoginStore.instance.accessToken.isEmpty &&
+          !routingExceptions.contains(state.matchedLocation)) {
         return RoutesNames.login;
       }
       return null;
@@ -64,6 +82,12 @@ class CustomRouterConfig {
       );
     },
     routes: [
+      /// Public Catalog Route (no authentication required)
+      GoRoute(
+        path: '/catalogo/:catalogId',
+        builder: _publicCatalogHandler,
+      ),
+
       /// Main ShellRoute for authenticated users
       GoRoute(
         path: RoutesNames.login,
@@ -166,9 +190,30 @@ class CustomRouterConfig {
                 pageBuilder: _settingPageHandler,
               ),
               GoRoute(
+                path: RoutesNames.editProfile,
+                parentNavigatorKey: managementNavigatorKey,
+                pageBuilder: _editProfilePageHandler,
+              ),
+              GoRoute(
+                path: RoutesNames.myWithdrawals,
+                parentNavigatorKey: managementNavigatorKey,
+                pageBuilder: _myWithdrawalsPageHandler,
+              ),
+
+              GoRoute(
                 path: RoutesNames.subCategory,
                 parentNavigatorKey: managementNavigatorKey,
                 pageBuilder: _subCategoryPageHandler,
+              ),
+              GoRoute(
+                path: RoutesNames.myCatalogs,
+                parentNavigatorKey: managementNavigatorKey,
+                pageBuilder: _myCatalogsPageHandler,
+              ),
+              GoRoute(
+                path: RoutesNames.catalogDetail,
+                parentNavigatorKey: managementNavigatorKey,
+                pageBuilder: _catalogDetailPageHandler,
               ),
             ],
           ),

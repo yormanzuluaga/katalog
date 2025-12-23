@@ -22,13 +22,16 @@ class TransactionsResource {
     required PaymentTransactionModel transaction,
     Map<String, String>? headers,
   }) async {
+    print(jsonEncode(transaction.toJson()));
+
     final response = await _apiClient.post(
-      'api/transactions',
+      'api/transactions-v2/create',
       body: jsonEncode(transaction.toJson()),
       modifiedHeaders: headers,
     );
 
-    if (response.statusCode == HttpStatus.ok || response.statusCode == HttpStatus.created) {
+    if (response.statusCode == HttpStatus.ok ||
+        response.statusCode == HttpStatus.created) {
       return Future.value((null, true));
     } else {
       return Future.value(
@@ -51,7 +54,8 @@ class TransactionsResource {
       modifiedHeaders: headers,
     );
 
-    if (response.statusCode == HttpStatus.ok || response.statusCode == HttpStatus.created) {
+    if (response.statusCode == HttpStatus.ok ||
+        response.statusCode == HttpStatus.created) {
       return Future.value((null, true));
     } else {
       return Future.value(

@@ -61,7 +61,8 @@ class TransactionItems extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        DateFormat('dd MMM yyyy, HH:mm').format(transaction.date),
+                        DateFormat('dd MMM yyyy, HH:mm')
+                            .format(transaction.date),
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[500],
@@ -80,7 +81,9 @@ class TransactionItems extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: transaction.type == 'withdrawal' ? Colors.red[600] : Colors.green[600],
+                color: transaction.type == 'withdrawal'
+                    ? Colors.red[600]
+                    : Colors.green[600],
               ),
             ),
           ],

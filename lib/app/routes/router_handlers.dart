@@ -27,12 +27,47 @@ Page<Widget> _productListHandler(
   BuildContext context,
   GoRouterState state,
 ) {
+  // Verificar si viene del extra (navegación desde marcas)
+  final extra = state.extra as Map<String, dynamic>?;
+
+  if (extra != null) {
+    return NoTransitionPage(
+      child: BlocProvider(
+        create: (context) => sl<ProductBloc>(),
+        child: ProductList(
+          title: extra['title'] ?? 'Productos',
+          info: extra['info'] ?? '',
+          id: extra['id'] ?? '',
+          type: extra['type'],
+        ),
+      ),
+    );
+  }
+
+  // Valor por defecto
   return NoTransitionPage(
+    child: BlocProvider(
+      create: (context) => sl<ProductBloc>(),
       child: ProductList(
-    title: 'prueba',
-    info: 'prueba',
-    id: '12',
-  ));
+        title: 'prueba',
+        info: 'prueba',
+        id: '12',
+      ),
+    ),
+  );
+}
+
+Page<Widget> _catalogDetailPageHandler(
+  BuildContext context,
+  GoRouterState state,
+) {
+  final extra = state.extra as String;
+
+  return NoTransitionPage(
+    child: CatalogDetailPage(
+      catalogId: extra,
+    ),
+  );
 }
 
 Page<Widget> _productPageHandler(
@@ -95,6 +130,13 @@ Page<Widget> _settingPageHandler(
   return NoTransitionPage(child: SettingPage());
 }
 
+Page<Widget> _editProfilePageHandler(
+  BuildContext context,
+  GoRouterState state,
+) {
+  return NoTransitionPage(child: EditProfilePage());
+}
+
 Page<Widget> _subCategoryPageHandler(
   BuildContext context,
   GoRouterState state,
@@ -107,6 +149,20 @@ Page<Widget> _walletPageHandler(
   GoRouterState state,
 ) {
   return NoTransitionPage(child: WalletPage());
+}
+
+Page<Widget> _myCatalogsPageHandler(
+  BuildContext context,
+  GoRouterState state,
+) {
+  return NoTransitionPage(child: const MyCatalogsPage());
+}
+
+Page<Widget> _myWithdrawalsPageHandler(
+  BuildContext context,
+  GoRouterState state,
+) {
+  return NoTransitionPage(child: const MyWithdrawals());
 }
 
 Page<Widget> _wompiPaymentWebViewHandler(
@@ -229,5 +285,17 @@ Page<Widget> _paymentRejectedHandler(
       reason: reason,
       attemptedAt: attemptedAt,
     ),
+  );
+}
+
+Widget _publicCatalogHandler(BuildContext context, GoRouterState state) {
+  final catalogId = state.pathParameters['catalogId'] ?? '';
+
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Catálogo'),
+      backgroundColor: AppColors.primaryMain,
+    ),
+    body: PublicCatalogPage(catalogId: catalogId),
   );
 }

@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
 class WalletBalanceCard extends StatelessWidget {
-  final double balance;
-  final double totalEarnings;
-  final double pendingEarnings;
+  final num balance;
+  final num totalEarnings;
+  final num pendingEarnings;
+  final int points;
 
   const WalletBalanceCard({
     Key? key,
     required this.balance,
     required this.totalEarnings,
     required this.pendingEarnings,
+    required this.points,
   }) : super(key: key);
 
   @override
@@ -44,7 +46,7 @@ class WalletBalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '\$${balance.toStringAsFixed(2)}',
+            '\$${_formatNumber(balance.toInt())}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -57,17 +59,40 @@ class WalletBalanceCard extends StatelessWidget {
               Expanded(
                 child: _buildInfoColumn(
                   'Ganancias Totales',
-                  '\$${totalEarnings.toStringAsFixed(2)}',
+                  '\$${_formatNumber(totalEarnings.toInt())}',
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: _buildInfoColumn(
                   'Ganancias Pendientes',
-                  '\$${pendingEarnings.toStringAsFixed(2)}',
+                  '\$${_formatNumber(pendingEarnings.toInt())}',
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.stars, color: Colors.amber, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  '$points Puntos',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -96,5 +121,12 @@ class WalletBalanceCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatNumber(int number) {
+    return number.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
   }
 }

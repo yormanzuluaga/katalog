@@ -1,6 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:api_helper/api_helper.dart';
+import 'package:api_repository/api_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:talentpitch_test/app/bloc/app_bloc.dart';
+import 'package:talentpitch_test/app/routes/router_config.dart';
 
 // Events
 abstract class WalletEvent extends Equatable {
@@ -15,12 +19,12 @@ class LoadWallet extends WalletEvent {}
 class RefreshWallet extends WalletEvent {}
 
 class RequestWithdrawal extends WalletEvent {
-  final double amount;
+  final WithdrawalRequest request;
 
-  const RequestWithdrawal(this.amount);
+  const RequestWithdrawal(this.request);
 
   @override
-  List<Object?> get props => [amount];
+  List<Object?> get props => [request];
 }
 
 class LoadTransactionDetail extends WalletEvent {
@@ -85,8 +89,12 @@ class WithdrawalError extends WalletState {
 // BLoC
 class WalletBloc extends Bloc<WalletEvent, WalletState> {
   // final WalletRepository _repository;
+  final WithdrawalRepository _withdrawalRepository;
 
-  WalletBloc() : super(WalletInitial()) {
+  WalletBloc({
+    required WithdrawalRepository withdrawalRepository,
+  })  : _withdrawalRepository = withdrawalRepository,
+        super(WalletInitial()) {
     on<LoadWallet>(_onLoadWallet);
     on<RefreshWallet>(_onRefreshWallet);
     on<RequestWithdrawal>(_onRequestWithdrawal);
@@ -184,28 +192,47 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
       if (state is WalletLoaded) {
         final wallet = (state as WalletLoaded).wallet;
 
-        if (event.amount <= 0) {
+        if (event.request.amount <= 0) {
           emit(const WithdrawalError('El monto debe ser mayor a 0'));
           emit(WalletLoaded(wallet));
           return;
         }
 
-        if (event.amount > wallet.balance) {
+        if (event.request.amount > wallet.balance) {
           emit(const WithdrawalError('Saldo insuficiente'));
           emit(WalletLoaded(wallet));
           return;
         }
       }
+      final appState = rootNavigatorKey.currentContext!.read<AppBloc>().state;
 
-      // TODO: Reemplazar con llamada real a la API
-      // await _repository.requestWithdrawal(event.amount);
+      // Call the API
+      final (error, response) = await _withdrawalRepository.requestWithdrawal(
+        request: event.request,
+        headers: appState.createHeaders(),
+      );
 
-      await Future.delayed(const Duration(seconds: 2));
+      if (error != null) {
+        emit(WithdrawalError('Error al procesar el retiro: ${error.message}'));
+        if (state is WalletLoaded) {
+          final wallet = (state as WalletLoaded).wallet;
+          emit(WalletLoaded(wallet));
+        }
+        return;
+      }
 
-      emit(const WithdrawalSuccess('Solicitud de retiro enviada exitosamente'));
-
-      // Recargar el wallet después del retiro
-      add(LoadWallet());
+      if (response != null && response.success) {
+        emit(WithdrawalSuccess(response.message));
+        // Recargar el wallet después del retiro
+        add(LoadWallet());
+      } else {
+        emit(WithdrawalError(
+            response?.message ?? 'Error al procesar el retiro'));
+        if (state is WalletLoaded) {
+          final wallet = (state as WalletLoaded).wallet;
+          emit(WalletLoaded(wallet));
+        }
+      }
     } catch (e) {
       emit(WithdrawalError('Error al procesar el retiro: ${e.toString()}'));
       if (state is WalletLoaded) {

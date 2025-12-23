@@ -1,6 +1,8 @@
 import 'package:api_helper/api_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class ProductVariantsModal extends StatefulWidget {
@@ -24,7 +26,8 @@ class _ProductVariantsModalState extends State<ProductVariantsModal> {
   void initState() {
     super.initState();
     // Seleccionar la primera variante disponible por defecto
-    if (widget.product.variants != null && widget.product.variants!.isNotEmpty) {
+    if (widget.product.variants != null &&
+        widget.product.variants!.isNotEmpty) {
       selectedVariant = widget.product.variants!.first;
     }
   }
@@ -53,6 +56,15 @@ class _ProductVariantsModalState extends State<ProductVariantsModal> {
       );
     }
 
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, cartState) {
+        return _buildModalContent(context, variants, cartState);
+      },
+    );
+  }
+
+  Widget _buildModalContent(
+      BuildContext context, List<Variant> variants, CartState cartState) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.whitePure,
@@ -107,15 +119,90 @@ class _ProductVariantsModalState extends State<ProductVariantsModal> {
 
             const SizedBox(height: 24),
 
-            // Botones
-            AppButton.primary(
-              title: 'Agregar al carrito',
-              onPressed: selectedVariant != null ? () => widget.onVariantSelected(selectedVariant!) : null,
-            ),
+            // Botones - Mostrar contador si ya está en el carrito, sino botón agregar
+            _buildActionButton(context, cartState),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildActionButton(BuildContext context, CartState cartState) {
+    if (selectedVariant == null) {
+      return AppButton.primary(
+        title: 'Selecciona una opción',
+        onPressed: null,
+      );
+    }
+
+    // Generar el ID de la variante seleccionada
+    final variantId =
+        _generateVariantId(widget.product.id ?? '', selectedVariant!);
+
+    // Buscar si este producto con variante específica está en el carrito
+    final productInCart = cartState.listSale?.firstWhere(
+      (cartProduct) => cartProduct.id == variantId,
+      orElse: () => Product(),
+    );
+
+    final isProductInCart = productInCart?.id == variantId;
+    final quantity = productInCart?.quantity ?? 1;
+
+    if (isProductInCart) {
+      return Column(
+        children: [
+          Text(
+            'Este producto ya está en tu carrito',
+            style: APTextStyle.textSM.medium.copyWith(
+              color: AppColors.gray80,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          AppCounters.normal(
+            key: ValueKey('counter_modal_$variantId'),
+            initialValue: quantity,
+            onDelete: () {
+              context.read<CartBloc>().add(
+                    DeletedCartEvent(id: variantId),
+                  );
+              Navigator.of(context).pop();
+            },
+            onChange: (value) {
+              context.read<CartBloc>().add(
+                    CountCartEvent(
+                      id: variantId,
+                      quantity: value,
+                    ),
+                  );
+            },
+          ),
+        ],
+      );
+    }
+
+    return AppButton.primary(
+      title: 'Agregar al carrito',
+      onPressed: () => widget.onVariantSelected(selectedVariant!),
+    );
+  }
+
+  String _generateVariantId(String baseId, Variant variant) {
+    final List<String> parts = [baseId];
+
+    if (variant.color?.name != null) {
+      parts.add(
+          'color_${variant.color!.name!.toLowerCase().replaceAll(' ', '_')}');
+    }
+    if (variant.size != null) {
+      parts.add(
+          'size_${variant.size.toString().toLowerCase().replaceAll(' ', '_')}');
+    }
+    if (variant.sku != null) {
+      parts.add('sku_${variant.sku!.toLowerCase().replaceAll(' ', '_')}');
+    }
+
+    return parts.join('_');
   }
 
   Widget _buildVariantOption(Variant variant) {
@@ -182,7 +269,8 @@ class _ProductVariantsModalState extends State<ProductVariantsModal> {
                               width: 1,
                             ),
                           ),
-                          child: _getColorFromString(variant.color?.name) == Colors.white
+                          child: _getColorFromString(variant.color?.name) ==
+                                  Colors.white
                               ? Icon(
                                   Icons.circle_outlined,
                                   size: 12,
@@ -248,7 +336,8 @@ class _ProductVariantsModalState extends State<ProductVariantsModal> {
 
       // Si es un color hexadecimal
       if (cleanColorName.startsWith('#')) {
-        return Color(int.parse(cleanColorName.substring(1), radix: 16) + 0xFF000000);
+        return Color(
+            int.parse(cleanColorName.substring(1), radix: 16) + 0xFF000000);
       }
 
       // Si es rgb o rgba, intentar parsearlo
@@ -347,7 +436,8 @@ class _ProductVariantsModalState extends State<ProductVariantsModal> {
 
         default:
           // Si no encontramos el color, usar gris por defecto
-          print('⚠️ Color no reconocido: "$colorName", usando color por defecto');
+          print(
+              '⚠️ Color no reconocido: "$colorName", usando color por defecto');
           return AppColors.gray100;
       }
     } catch (e) {

@@ -13,4 +13,10 @@ abstract class CategoryRepository {
     required String idProduct,
     Map<String, String>? headers,
   });
+
+  Future<(ApiException?, ProductModel?)> getProductByFilter({
+    required String idProduct,
+    required String filter,
+    Map<String, String>? headers,
+  });
 }

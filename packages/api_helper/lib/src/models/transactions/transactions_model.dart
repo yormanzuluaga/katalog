@@ -18,9 +18,10 @@ class PaymentTransactionModel extends Equatable {
   /// Creates a [PaymentTransactionModel] from a JSON object
   factory PaymentTransactionModel.fromJson(Map<String, dynamic> json) {
     return PaymentTransactionModel(
-      items:
-          (json['items'] as List<dynamic>?)?.map((e) => TransactionItem.fromJson(e as Map<String, dynamic>)).toList() ??
-              [],
+      items: (json['items'] as List<dynamic>?)
+              ?.map((e) => TransactionItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
       shippingAddressId: json['shippingAddressId'] as String? ?? '',
       wompiTransactionId: json['wompiTransactionId'] as String? ?? '',
       wompiReference: json['wompiReference'] as String? ?? '',
@@ -87,7 +88,8 @@ class TransactionItem extends Equatable {
     required this.quantity,
     required this.unitPrice,
     required this.commission,
-    this.variations,
+    this.variantSku,
+    this.selectedVariant,
   });
 
   /// Creates a [TransactionItem] from a JSON object
@@ -96,11 +98,12 @@ class TransactionItem extends Equatable {
       productId: json['productId'] as String? ?? '',
       productType: json['productType'] as String? ?? '',
       quantity: json['quantity'] as int? ?? 0,
-      unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0.0,
-      commission: (json['commission'] as num?)?.toDouble() ?? 0.0,
-      variations: json['variations'] != null
-          ? ProductVariations.fromJson(
-              json['variations'] as Map<String, dynamic>,
+      unitPrice: (json['unitPrice'] as num?) ?? 0,
+      commission: (json['commission'] as num?) ?? 0,
+      variantSku: json['variantSku'] as String?,
+      selectedVariant: json['selectedVariant'] != null
+          ? SelectedVariant.fromJson(
+              json['selectedVariant'] as Map<String, dynamic>,
             )
           : null,
     );
@@ -116,13 +119,16 @@ class TransactionItem extends Equatable {
   final int quantity;
 
   /// Unit price
-  final double unitPrice;
+  final num unitPrice;
 
   /// Commission amount
-  final double commission;
+  final num commission;
 
-  /// Product variations (color, size, etc.)
-  final ProductVariations? variations;
+  /// Variant SKU (only for variable products)
+  final String? variantSku;
+
+  /// Selected variant details (only for variable products)
+  final SelectedVariant? selectedVariant;
 
   /// Converts the model to a JSON object
   Map<String, dynamic> toJson() {
@@ -132,7 +138,8 @@ class TransactionItem extends Equatable {
       'quantity': quantity,
       'unitPrice': unitPrice,
       'commission': commission,
-      if (variations != null) 'variations': variations!.toJson(),
+      'variantSku': variantSku,
+      if (selectedVariant != null) 'selectedVariant': selectedVariant!.toJson(),
     };
   }
 
@@ -143,8 +150,51 @@ class TransactionItem extends Equatable {
         quantity,
         unitPrice,
         commission,
-        variations,
+        variantSku,
+        selectedVariant,
       ];
+}
+
+/// {@template selected_variant}
+/// Model for selected variant details
+/// {@endtemplate}
+class SelectedVariant extends Equatable {
+  /// {@macro selected_variant}
+  const SelectedVariant({
+    this.color,
+    this.size,
+  });
+
+  /// Creates a [SelectedVariant] from a JSON object
+  factory SelectedVariant.fromJson(Map<String, dynamic> json) {
+    return SelectedVariant(
+      color: json['color'] != null
+          ? ColorVariation.fromJson(json['color'] as Map<String, dynamic>)
+          : null,
+      size: json['size'] as String?,
+    );
+  }
+
+  /// Color variation
+  final ColorVariation? color;
+
+  /// Size value
+  final String? size;
+
+  /// Converts the model to a JSON object
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    if (color != null) {
+      json['color'] = color!.toJson();
+    }
+    if (size != null) {
+      json['size'] = size;
+    }
+    return json;
+  }
+
+  @override
+  List<Object?> get props => [color, size];
 }
 
 /// {@template product_variations}
@@ -162,9 +212,15 @@ class ProductVariations extends Equatable {
   /// Creates a [ProductVariations] from a JSON object
   factory ProductVariations.fromJson(Map<String, dynamic> json) {
     return ProductVariations(
-      color: json['color'] != null ? ColorVariation.fromJson(json['color'] as Map<String, dynamic>) : null,
-      size: json['size'] != null ? SizeVariation.fromJson(json['size'] as Map<String, dynamic>) : null,
-      material: json['material'] != null ? MaterialVariation.fromJson(json['material'] as Map<String, dynamic>) : null,
+      color: json['color'] != null
+          ? ColorVariation.fromJson(json['color'] as Map<String, dynamic>)
+          : null,
+      size: json['size'] != null
+          ? SizeVariation.fromJson(json['size'] as Map<String, dynamic>)
+          : null,
+      material: json['material'] != null
+          ? MaterialVariation.fromJson(json['material'] as Map<String, dynamic>)
+          : null,
       customOptions: (json['customOptions'] as List<dynamic>?)
           ?.map((e) => CustomOption.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -189,7 +245,8 @@ class ProductVariations extends Equatable {
       if (color != null) 'color': color!.toJson(),
       if (size != null) 'size': size!.toJson(),
       if (material != null) 'material': material!.toJson(),
-      if (customOptions != null) 'customOptions': customOptions!.map((e) => e.toJson()).toList(),
+      if (customOptions != null)
+        'customOptions': customOptions!.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -371,7 +428,10 @@ class TransactionResponse extends Equatable {
       success: json['success'] as bool? ?? false,
       message: json['message'] as String?,
       transactionId: json['transactionId'] as String?,
-      data: json['data'] != null ? PaymentTransactionModel.fromJson(json['data'] as Map<String, dynamic>) : null,
+      data: json['data'] != null
+          ? PaymentTransactionModel.fromJson(
+              json['data'] as Map<String, dynamic>)
+          : null,
     );
   }
 

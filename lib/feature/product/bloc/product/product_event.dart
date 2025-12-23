@@ -21,3 +21,25 @@ class CleanProductEvent extends ProductEvent {
   @override
   List<Object?> get props => [];
 }
+
+class LoadProductsByCategoryEvent extends ProductEvent {
+  final String categoryId;
+  const LoadProductsByCategoryEvent({required this.categoryId});
+  @override
+  List<Object?> get props => [categoryId];
+}
+
+class FilterProductsEvent extends ProductEvent {
+  final String categoryId;
+  final String filter;
+  const FilterProductsEvent({required this.categoryId, required this.filter});
+  @override
+  List<Object?> get props => [categoryId, filter];
+}
+
+class ClearProductFilterEvent extends ProductEvent {
+  final String categoryId;
+  const ClearProductFilterEvent({required this.categoryId});
+  @override
+  List<Object?> get props => [categoryId];
+}

@@ -7,15 +7,20 @@ import 'package:talentpitch_test/feature/auth/bloc/auth/auth_bloc.dart';
 import 'package:talentpitch_test/feature/cart/bloc/address/address_bloc.dart';
 import 'package:talentpitch_test/feature/cart/bloc/cart/cart_bloc.dart';
 import 'package:talentpitch_test/feature/home/bloc/home_bloc.dart';
+import 'package:talentpitch_test/feature/product/bloc/brand/brand_bloc.dart';
+import 'package:talentpitch_test/feature/catalog/bloc/catalog/catalog_bloc.dart';
 import 'package:talentpitch_test/feature/product/bloc/category/category_bloc.dart';
 import 'package:talentpitch_test/feature/product/bloc/product/product_bloc.dart';
 import 'package:talentpitch_test/feature/setting/bloc/setting_bloc.dart';
+import 'package:talentpitch_test/feature/wallet/bloc/balance/balance_bloc.dart';
+import 'package:talentpitch_test/feature/wallet/bloc/wallet_bloc.dart';
 import 'package:talentpitch_test/l10n/arb/app_localizations.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:talentpitch_test/app/routes/routes.dart';
-import 'package:talentpitch_test/injection/injection_container.dart' as injection;
+import 'package:talentpitch_test/injection/injection_container.dart'
+    as injection;
 import 'package:talentpitch_test/app/routes/router_config.dart';
 
 /// {@template app}
@@ -58,6 +63,18 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (_) => injection.sl<AddressBloc>(),
         ),
+        BlocProvider(
+          create: (_) => injection.sl<BrandBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => injection.sl<CatalogBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => injection.sl<BalanceBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => injection.sl<WalletBloc>(),
+        ),
       ],
       child: Builder(
         builder: (context) {
@@ -74,7 +91,8 @@ class App extends StatelessWidget {
                     debugShowCheckedModeBanner: false,
                     theme: const AppTheme().themeData,
                     title: 'Talentepitch',
-                    localizationsDelegates: AppLocalizations.localizationsDelegates,
+                    localizationsDelegates:
+                        AppLocalizations.localizationsDelegates,
                     supportedLocales: AppLocalizations.supportedLocales,
                     routeInformationProvider: router.routeInformationProvider,
                     routeInformationParser: router.routeInformationParser,
@@ -91,7 +109,8 @@ class App extends StatelessWidget {
   Future<void> _loadUserData(BuildContext context) async {
     final appBloc = context.read<AppBloc>();
 
-    if (appBloc.state.token == null || (appBloc.state.token?.isNotEmpty ?? false)) {
+    if (appBloc.state.token == null ||
+        (appBloc.state.token?.isNotEmpty ?? false)) {
       final token = LoginStore.instance.accessToken;
       final user = UserStore.instance;
 
