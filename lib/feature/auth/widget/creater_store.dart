@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class CreaterStore extends StatefulWidget {
-  const CreaterStore({Key? key}) : super(key: key);
+  const CreaterStore({super.key});
 
   @override
   CreaterStoreState createState() => CreaterStoreState();
@@ -89,7 +88,8 @@ class CreaterStoreState extends State<CreaterStore> {
                           fillColor: AppColors.whitePure,
                           filled: true,
                           hintText: 'Nombre de negocio',
-                          hintStyle: const TextStyle(color: AppColors.primaryMain),
+                          hintStyle:
+                              const TextStyle(color: AppColors.primaryMain),
                         ),
                         validator: (value) {
                           if (value == '') return 'Este campo es requerido';

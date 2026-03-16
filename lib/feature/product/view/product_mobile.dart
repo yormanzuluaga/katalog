@@ -44,24 +44,30 @@ class ProductMobile extends StatelessWidget {
                           color: AppColors.primaryMain,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          context.go(RoutesNames.productList);
-                        },
-                        child: Row(
-                          children: [
-                            Text(
-                              'Ver todas las categorías',
-                              style: APTextStyle.textMD.bold.copyWith(
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            context.go(RoutesNames.productList);
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Ver todas las categorías',
+                                  style: APTextStyle.textMD.bold.copyWith(
+                                    color: AppColors.primaryMain,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios_outlined,
+                                size: 20,
                                 color: AppColors.primaryMain,
                               ),
-                            ),
-                            Icon(
-                              Icons.arrow_forward_ios_outlined,
-                              size: 20,
-                              color: AppColors.primaryMain,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -157,6 +163,8 @@ class ProductMobile extends StatelessWidget {
                             Text(
                               category.name ?? '',
                               textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: APTextStyle.textSM.semibold.copyWith(
                                 color: AppColors.secondaryDark,
                               ),

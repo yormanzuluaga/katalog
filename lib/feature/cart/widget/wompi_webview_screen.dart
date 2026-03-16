@@ -43,44 +43,29 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
   @override
   void initState() {
     super.initState();
-    print('🚀 WompiWebViewScreen iniciado');
-    print('📍 Payment URL: ${widget.paymentUrl}');
 
     // Verificar que la URL tenga los parámetros necesarios
     final uri = Uri.tryParse(widget.paymentUrl);
     if (uri != null) {
-      print('🔍 Verificando parámetros en URL:');
-      print('   Public Key: ${uri.queryParameters['public-key'] != null ? 'Presente' : 'FALTANTE'}');
-      print('   Amount: ${uri.queryParameters['amount-in-cents'] != null ? 'Presente' : 'FALTANTE'}');
-      print('   Reference: ${uri.queryParameters['reference'] != null ? 'Presente' : 'FALTANTE'}');
-      print('   Signature:integrity: ${uri.queryParameters['signature:integrity'] != null ? 'Presente' : 'FALTANTE'}');
-      print('   Acceptance token: ${uri.queryParameters['acceptance-token'] != null ? 'Presente' : 'FALTANTE'}');
-
-      if (uri.queryParameters['signature:integrity'] == null) {
-        print('❌ PROBLEMA: Falta signature:integrity en la URL');
-      }
+      if (uri.queryParameters['signature:integrity'] == null) {}
     }
   }
 
   void _handleUrlChange(String url) {
-    print('🔍 Analizando URL (InAppWebView): $url');
-
     // URLs de respuesta personalizadas que configuramos en el checkout
     if (url.startsWith('https://myapp.payment/success') ||
         url.startsWith('https://myapp.payment/error') ||
         url.startsWith('https://myapp.payment/cancel')) {
-      print('📍 URL de respuesta detectada: $url');
-
       // Capturar los parámetros de la URL
       final uri = Uri.tryParse(url);
       if (uri != null) {
         final uriParams = uri.queryParameters;
-        print('🎯 Parámetros capturados: $uriParams');
 
         // Determinar el resultado del pago basado en la URL
         if (url.startsWith('https://myapp.payment/success')) {
           _handleSuccessUrl(url, uriParams);
-        } else if (url.startsWith('https://myapp.payment/error') || url.startsWith('https://myapp.payment/cancel')) {
+        } else if (url.startsWith('https://myapp.payment/error') ||
+            url.startsWith('https://myapp.payment/cancel')) {
           _handleErrorUrl(url, uriParams);
         }
       }
@@ -94,13 +79,11 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
       final transactionId = uri.queryParameters['id'];
 
       if (status == 'APPROVED' && transactionId != null) {
-        print('✅ Pago APROBADO detectado en URL: $url');
         _handleSuccessUrl(url, uri.queryParameters);
         return;
       }
 
       if (status == 'DECLINED' || status == 'ERROR') {
-        print('❌ Pago RECHAZADO detectado en URL: $url');
         _handleErrorUrl(url, uri.queryParameters);
         return;
       }
@@ -111,17 +94,13 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
     if (_paymentProcessed) return;
     _paymentProcessed = true;
 
-    print('🎉 Procesando URL de éxito: $url');
-    print('📋 Parámetros: $params');
-
     // Buscar el transaction ID en diferentes parámetros
-    final transactionId = params['id'] ?? params['transaction_id'] ?? params['transactionId'];
+    final transactionId =
+        params['id'] ?? params['transaction_id'] ?? params['transactionId'];
 
     if (transactionId != null && transactionId.isNotEmpty) {
-      print('✅ Transaction ID encontrado: $transactionId');
       _verifyTransactionAndRedirect(transactionId, url);
     } else {
-      print('⚠️ URL de éxito pero sin Transaction ID');
       _showPaymentError(
           'No se pudo verificar el estado del pago. Transaction ID no encontrado en la respuesta de Wompi.');
     }
@@ -131,25 +110,20 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
     if (_paymentProcessed) return;
     _paymentProcessed = true;
 
-    print('❌ Procesando URL de error: $url');
-    print('📋 Parámetros: $params');
-
-    final reason = params['reason'] ?? params['error'] ?? 'El pago fue cancelado o falló';
+    final reason =
+        params['reason'] ?? params['error'] ?? 'El pago fue cancelado o falló';
     _showPaymentError(reason);
   }
 
-  void _verifyTransactionAndRedirect(String transactionId, String originalUrl) async {
+  void _verifyTransactionAndRedirect(
+      String transactionId, String originalUrl) async {
     try {
-      print('🔍 Verificando estado real de la transacción en Wompi...');
-      print('   Transaction ID: $transactionId');
-
       _showLoadingDialog('Verificando estado del pago...');
 
-      final verificationResult = await WompiPaymentService.verifyTransactionStatus(transactionId);
+      final verificationResult =
+          await WompiPaymentService.verifyTransactionStatus(transactionId);
 
       if (verificationResult == null) {
-        print('❌ Error al verificar estado de transacción');
-        // Cerrar diálogo de carga
         if (mounted) {
           Navigator.of(context, rootNavigator: true).pop();
         }
@@ -161,14 +135,7 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
       final status = verificationResult['status'] as String;
       final transactionDetails = verificationResult['transaction'];
 
-      print('📊 RESULTADO FINAL DE VERIFICACIÓN:');
-      print('   Aprobada: $isApproved');
-      print('   Status: $status');
-      print('   Transaction ID: $transactionId');
-
       if (isApproved) {
-        print('✅ TRANSACCIÓN APROBADA - Enviando al backend...');
-
         // Actualizar mensaje del diálogo
         if (mounted) {
           Navigator.of(context, rootNavigator: true).pop();
@@ -189,10 +156,8 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
         }
 
         if (backendSuccess) {
-          print('✅ Transacción enviada exitosamente al backend');
           _navigateToSuccessScreen(transactionId, transactionDetails);
         } else {
-          print('⚠️ Error al enviar transacción al backend, pero pago fue exitoso');
           // Aún así navegar a éxito porque el pago fue aprobado
           _navigateToSuccessScreen(transactionId, transactionDetails);
         }
@@ -202,7 +167,8 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
         if (mounted) {
           Navigator.of(context, rootNavigator: true).pop();
         }
-        _navigateToRejectedScreen(transactionId, transactionDetails, 'El pago fue rechazado. Status: $status');
+        _navigateToRejectedScreen(transactionId, transactionDetails,
+            'El pago fue rechazado. Status: $status');
       }
     } catch (e) {
       print('❌ Error al verificar transacción: $e');
@@ -225,7 +191,10 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
     try {
       print('📤 Enviando transacción al backend usando PaymentBloc...');
 
-      final approvalCode = transactionDetails?['payment_method']?['extra']?['approval_code']?.toString() ?? '';
+      final approvalCode = transactionDetails?['payment_method']?['extra']
+                  ?['approval_code']
+              ?.toString() ??
+          '';
 
       // Crear un Completer ANTES de disparar el evento
       final completer = Completer<bool>();
@@ -287,41 +256,6 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
     }
   }
 
-  Future<bool> _waitForBlocResponse() async {
-    print('⏳ Esperando respuesta del BLoC...');
-
-    // Escuchar el stream del BLoC por un tiempo limitado
-    final completer = Completer<bool>();
-    StreamSubscription? subscription;
-
-    subscription = context.read<PaymentBloc>().stream.listen((state) {
-      if (state is TransactionSentToBackend) {
-        print('✅ BLoC: Transacción enviada exitosamente');
-        if (!completer.isCompleted) {
-          completer.complete(true);
-          subscription?.cancel();
-        }
-      } else if (state is TransactionBackendError) {
-        print('❌ BLoC: Error al enviar transacción');
-        if (!completer.isCompleted) {
-          completer.complete(false);
-          subscription?.cancel();
-        }
-      }
-    });
-
-    // Timeout después de 10 segundos
-    Future.delayed(const Duration(seconds: 10), () {
-      if (!completer.isCompleted) {
-        print('⏰ Timeout esperando respuesta del BLoC');
-        completer.complete(false);
-        subscription?.cancel();
-      }
-    });
-
-    return completer.future;
-  }
-
   void _showLoadingDialog(String message) {
     showDialog(
       context: context,
@@ -346,7 +280,8 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
     );
   }
 
-  void _navigateToSuccessScreen(String? transactionId, Map<String, dynamic>? transactionDetails) {
+  void _navigateToSuccessScreen(
+      String? transactionId, Map<String, dynamic>? transactionDetails) {
     if (!mounted) return;
 
     DateTime? approvedAt;
@@ -399,7 +334,8 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
     }
   }
 
-  void _navigateToRejectedScreen(String? transactionId, Map<String, dynamic>? transactionDetails, String reason) {
+  void _navigateToRejectedScreen(String? transactionId,
+      Map<String, dynamic>? transactionDetails, String reason) {
     if (!mounted) return;
 
     DateTime? attemptedAt;
@@ -492,7 +428,8 @@ class _WompiWebViewScreenState extends State<WompiWebViewScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.red[700], size: 16),
+                        Icon(Icons.info_outline,
+                            color: Colors.red[700], size: 16),
                         const SizedBox(width: 8),
                         const Text(
                           'No se realizó ningún cargo',
@@ -663,30 +600,38 @@ Loading: $_isLoading
 
                 // Si el título indica un error de Wompi, reportarlo
                 if (title != null &&
-                    (title.toLowerCase().contains('error') || title.toLowerCase().contains('invalid'))) {
-                  print('❌ Posible error en la página de Wompi detectado por título');
+                    (title.toLowerCase().contains('error') ||
+                        title.toLowerCase().contains('invalid'))) {
+                  print(
+                      '❌ Posible error en la página de Wompi detectado por título');
                 }
               } catch (e) {
                 print('⚠️ No se pudo obtener el título de la página: $e');
               }
             },
-            onLoadError: (InAppWebViewController controller, Uri? url, int code, String message) {
+            onLoadError: (InAppWebViewController controller, Uri? url, int code,
+                String message) {
               print('❌ Error en InAppWebView: $code - $message');
               print('   URL que falló: $url');
 
               // Errores específicos de Wompi
-              if (message.contains('signature') || message.contains('integrity')) {
+              if (message.contains('signature') ||
+                  message.contains('integrity')) {
                 print('🚨 ERROR DE FIRMA: Problema con signature:integrity');
-                _showError('Error de firma de integridad. Verifica los parámetros de Wompi.');
+                _showError(
+                    'Error de firma de integridad. Verifica los parámetros de Wompi.');
               } else if (code == 400) {
                 print('🚨 ERROR 400: Parámetros incorrectos enviados a Wompi');
-                _showError('Parámetros incorrectos. Verifica la configuración del pago.');
+                _showError(
+                    'Parámetros incorrectos. Verifica la configuración del pago.');
               } else if (code == 401) {
                 print('🚨 ERROR 401: Problema de autenticación con Wompi');
-                _showError('Error de autenticación con Wompi. Verifica las credenciales.');
+                _showError(
+                    'Error de autenticación con Wompi. Verifica las credenciales.');
               }
             },
-            onUpdateVisitedHistory: (InAppWebViewController controller, WebUri? url, bool? androidIsReload) {
+            onUpdateVisitedHistory: (InAppWebViewController controller,
+                WebUri? url, bool? androidIsReload) {
               // ESTA ES LA FUNCIÓN CLAVE QUE CAPTURA LAS REDIRECCIONES
               if (url != null && !_paymentProcessed) {
                 final urlString = url.toString();

@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class AppSearch extends StatelessWidget {
-  const AppSearch({super.key});
+  final ValueChanged<String>? onChanged;
+  final TextEditingController? controller;
+  final String? hintText;
+
+  const AppSearch({
+    super.key,
+    this.onChanged,
+    this.controller,
+    this.hintText,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,6 +20,8 @@ class AppSearch extends StatelessWidget {
       shadowColor: Colors.grey.shade300,
       borderRadius: BorderRadius.circular(16),
       child: TextFormField(
+        controller: controller,
+        onChanged: onChanged,
         style: const TextStyle(color: AppColors.black),
         autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(
@@ -51,7 +62,7 @@ class AppSearch extends StatelessWidget {
           focusColor: AppColors.transparent,
           hoverColor: AppColors.transparent,
           filled: true,
-          hintText: 'Buscar productos',
+          hintText: hintText ?? 'Buscar productos',
         ),
       ),
     );

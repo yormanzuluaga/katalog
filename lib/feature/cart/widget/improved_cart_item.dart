@@ -249,55 +249,62 @@ class ImprovedCartItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Ganancia
-                Row(
-                  children: [
-                    Icon(
-                      Icons.trending_up,
-                      size: 16,
-                      color: Colors.green[700],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isWholesale ? 'Ganancia por mayor:' : 'Ganancia:',
-                      style: TextStyle(
-                        fontSize: 12,
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.trending_up,
+                        size: 16,
                         color: Colors.green[700],
-                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    if (isWholesale && wholesaleCostPrice != null) ...[
-                      Text(
-                        '\$${_formatNumber(costPrice.toInt())}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
-                          decoration: TextDecoration.lineThrough,
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          isWholesale ? 'Ganancia x Mayor:' : 'Ganancia:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        '\$${_formatNumber(wholesaleCostPrice!.toInt())}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
+                      if (isWholesale && wholesaleCostPrice != null) ...[
+                        Text(
+                          '\$${_formatNumber(costPrice.toInt())}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[600],
+                            decoration: TextDecoration.lineThrough,
+                          ),
                         ),
-                      ),
-                    ] else
-                      Text(
-                        '\$${_formatNumber(costPrice.toInt())}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
+                        const SizedBox(width: 4),
+                        Text(
+                          '\$${_formatNumber(wholesaleCostPrice!.toInt())}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700],
+                          ),
                         ),
-                      ),
-                  ],
+                      ] else
+                        Text(
+                          '\$${_formatNumber(costPrice.toInt())}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 // Total
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       'Total:',

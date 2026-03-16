@@ -4,16 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pinput/pinput.dart';
 import 'package:talentpitch_test/app/bloc/app_bloc.dart';
 import 'package:talentpitch_test/feature/auth/bloc/auth/auth_bloc.dart';
-import 'package:talentpitch_test/feature/auth/widget/creater_user.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
 
 class VerifyNumberMobile extends StatefulWidget {
   final String numbePhone;
 
   const VerifyNumberMobile({
-    Key? key,
+    super.key,
     required this.numbePhone,
-  }) : super(key: key);
+  });
 
   @override
   VerifyNumberMobileState createState() => VerifyNumberMobileState();
@@ -154,7 +153,9 @@ class VerifyNumberMobileState extends State<VerifyNumberMobile> {
                     defaultPinTheme: PinTheme(
                         width: 54,
                         height: 54,
-                        decoration: BoxDecoration(color: AppColors.gray80, borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(
+                            color: AppColors.gray80,
+                            borderRadius: BorderRadius.circular(8)),
                         textStyle: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,

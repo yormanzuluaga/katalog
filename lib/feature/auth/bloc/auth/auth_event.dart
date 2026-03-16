@@ -59,3 +59,31 @@ class AuthInforEvent extends AuthEvent {
   @override
   List<Object> get props => [indexScreen];
 }
+
+class CreateUserEvent extends AuthEvent {
+  final String firstName;
+  final String lastName;
+  final String mobile;
+  final String countryCode;
+  final String? email;
+  final BuildContext context;
+
+  const CreateUserEvent({
+    required this.firstName,
+    required this.lastName,
+    required this.mobile,
+    required this.countryCode,
+    this.email,
+    required this.context,
+  });
+
+  @override
+  List<Object> get props => [
+        firstName,
+        lastName,
+        mobile,
+        countryCode,
+        if (email != null) email!,
+        context,
+      ];
+}

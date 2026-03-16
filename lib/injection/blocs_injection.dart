@@ -21,7 +21,10 @@ void _initBlocsInjections() {
     () => ProductBloc(),
   );
   sl.registerFactory(
-    () => AuthBloc(authRepository: sl()),
+    () => AuthBloc(
+      authRepository: sl(),
+      userRepository: sl(),
+    ),
   );
   sl.registerFactory(
     () => SettingBloc(),

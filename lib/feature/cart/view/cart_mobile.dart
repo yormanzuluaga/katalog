@@ -227,29 +227,41 @@ class CartMobileState extends State<CartMobile>
                               size: 24,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Resumen de venta',
-                              style: APTextStyle.textMD.semibold.copyWith(
-                                color: Colors.green.shade700,
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'Resumen de venta',
+                                      style:
+                                          APTextStyle.textMD.semibold.copyWith(
+                                        color: Colors.green.shade700,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (_calculateTotalUnits(state) >= 6) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'Por Mayor',
+                                        style: APTextStyle.textXS.semibold
+                                            .copyWith(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
-                            if (_calculateTotalUnits(state) >= 6) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'Por Mayor',
-                                  style: APTextStyle.textXS.semibold.copyWith(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -279,24 +291,31 @@ class CartMobileState extends State<CartMobile>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.local_shipping,
-                                  size: 18,
-                                  color: double.parse(state.sumTotal) >= 100000
-                                      ? Colors.green.shade700
-                                      : Colors.grey[700],
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Envío gratis mayor a 100.00 mil pesos',
-                                  style: APTextStyle.textSM.medium.copyWith(
-                                    color: Colors.grey[700],
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.local_shipping,
+                                    size: 18,
+                                    color:
+                                        double.parse(state.sumTotal) >= 100000
+                                            ? Colors.green.shade700
+                                            : Colors.grey[700],
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      'Envío gratis mayor a \$100.000',
+                                      style: APTextStyle.textSM.medium.copyWith(
+                                        color: Colors.grey[700],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Text(
                               double.parse(state.sumTotal) >= 100000
                                   ? 'Gratis'
@@ -315,35 +334,55 @@ class CartMobileState extends State<CartMobile>
                         const SizedBox(height: 12),
 
                         // Ganancia total
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.account_balance_wallet,
-                                  size: 18,
-                                  color: Colors.green.shade700,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _calculateTotalUnits(state) >= 6
-                                      ? 'Tu ganancia por mayor'
-                                      : 'Tu ganancia',
-                                  style: APTextStyle.textSM.semibold.copyWith(
-                                    color: Colors.green.shade700,
-                                  ),
-                                ),
-                              ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.green.shade200,
+                              width: 1,
                             ),
-                            Text(
-                              '\$${_calculateTotalProfit(state)}',
-                              style: APTextStyle.textXL.bold.copyWith(
-                                color: Colors.green.shade700,
-                                fontSize: 24,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.account_balance_wallet,
+                                      size: 18,
+                                      color: Colors.green.shade700,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        _calculateTotalUnits(state) >= 6
+                                            ? 'Ganancia x Mayor'
+                                            : 'Tu ganancia',
+                                        style: APTextStyle.textSM.semibold
+                                            .copyWith(
+                                          color: Colors.green.shade700,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Text(
+                                '\$${_calculateTotalProfit(state)}',
+                                style: APTextStyle.textXL.bold.copyWith(
+                                  color: Colors.green.shade700,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

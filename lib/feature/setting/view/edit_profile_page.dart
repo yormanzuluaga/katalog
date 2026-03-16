@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:talentpitch_test/core/database/user_store.dart';
 import 'package:talentpitch_test/feature/setting/bloc/profile/profile_bloc.dart';
 import 'package:talentpitch_test/injection/injection_container.dart';
@@ -18,6 +21,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _lastNameController;
   late TextEditingController _emailController;
   late TextEditingController _mobileController;
+  final ImagePicker _imagePicker = ImagePicker();
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -27,6 +32,221 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _lastNameController = TextEditingController(text: userStore.lastName);
     _emailController = TextEditingController(text: userStore.email);
     _mobileController = TextEditingController(text: userStore.mobile);
+  }
+
+  Future<void> _showImageSourceDialog() async {
+    return showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Seleccionar foto de perfil',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryMain,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  title: const Text(
+                    'Tomar foto',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryMain.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library,
+                      color: AppColors.primaryMain,
+                    ),
+                  ),
+                  title: const Text(
+                    'Seleccionar de galería',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  },
+                ),
+                if (_selectedImage != null ||
+                    UserStore.instance.avatar.isNotEmpty)
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        color: Colors.red,
+                      ),
+                    ),
+                    title: const Text(
+                      'Eliminar foto',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.red,
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _removeImage();
+                    },
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Imagen seleccionada. Guarda los cambios para actualizar.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Usuario canceló la selección
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selección de imagen cancelada'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } on Exception catch (e) {
+      print('Error picking image: $e'); // Debug log
+
+      if (!mounted) return;
+
+      String errorMessage = 'Error al seleccionar imagen';
+
+      // Personalizar mensaje según el error
+      final errorString = e.toString().toLowerCase();
+
+      if (errorString.contains('camera_access_denied') ||
+          errorString.contains('camera access')) {
+        errorMessage =
+            'Permiso de cámara denegado. Por favor, actívalo en configuración.';
+      } else if (errorString.contains('photo_access_denied') ||
+          errorString.contains('photo access')) {
+        errorMessage =
+            'Permiso de galería denegado. Por favor, actívalo en configuración.';
+      } else if (errorString.contains('channel-error') ||
+          errorString.contains('unable to establish')) {
+        errorMessage =
+            'Error de comunicación. Por favor, reinicia la aplicación.';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      print('Unexpected error picking image: $e'); // Debug log
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error inesperado: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+
+    // TODO: Aquí puedes agregar lógica para eliminar la imagen del servidor
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Foto eliminada. Guarda los cambios para actualizar.'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 
   @override
@@ -71,25 +291,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   Center(
                     child: Stack(
                       children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor: AppColors.whitePure,
-                          backgroundImage: UserStore.instance.avatar.isNotEmpty
-                              ? NetworkImage(UserStore.instance.avatar)
-                              : const NetworkImage(
-                                  "https://gravatar.com/avatar/8d3906acfe8aa2650ba9456258216bfd?s=400&d=mp&r=x"),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.secondary,
+                              width: 3,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundColor: AppColors.whitePure,
+                            backgroundImage: _selectedImage != null
+                                ? FileImage(_selectedImage!) as ImageProvider
+                                : (UserStore.instance.avatar.isNotEmpty
+                                    ? NetworkImage(UserStore.instance.avatar)
+                                    : const NetworkImage(
+                                        "https://gravatar.com/avatar/8d3906acfe8aa2650ba9456258216bfd?s=400&d=mp&r=x")),
+                          ),
                         ),
                         Positioned(
                           bottom: 0,
                           right: 0,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: AppColors.primaryMain,
+                              color: AppColors.secondary,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: Colors.white,
-                                width: 2,
+                                width: 3,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: IconButton(
                               icon: const Icon(
@@ -97,15 +335,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 color: Colors.white,
                                 size: 20,
                               ),
-                              onPressed: () {
-                                // TODO: Implementar cambio de foto
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Funcionalidad de cambio de foto próximamente'),
-                                  ),
-                                );
-                              },
+                              onPressed: _showImageSourceDialog,
                             ),
                           ),
                         ),

@@ -31,33 +31,55 @@ class ProductList extends StatefulWidget {
 }
 
 class ProductListState extends State<ProductList> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteTechnical,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: BlocBuilder<CartBloc, CartState>(
-          builder: (context, stateCart) {
-            return Column(
-              children: [
-                const AppSearch(),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Productos: ${widget.title}',
-                    style: APTextStyle.textMD.semibold,
+    return GestureDetector(
+      onTap: () {
+        // Quitar el foco del teclado al tocar fuera
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteTechnical,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: BlocBuilder<CartBloc, CartState>(
+            builder: (context, stateCart) {
+              return Column(
+                children: [
+                  AppSearch(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase();
+                      });
+                    },
                   ),
-                ),
-                const SizedBox(height: 8),
-                // Mostrar filtros solo para categorías (no para marcas)
-                _buildFilters(),
-                // Mostrar productos según el tipo (brand o category)
-                _buildCategoryProducts(stateCart),
-              ],
-            );
-          },
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Productos: ${widget.title}',
+                      style: APTextStyle.textMD.semibold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Mostrar filtros solo para categorías (no para marcas)
+                  _buildFilters(),
+                  // Mostrar productos según el tipo (brand o category)
+                  _buildCategoryProducts(stateCart),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -165,9 +187,16 @@ class ProductListState extends State<ProductList> {
           );
         }
 
+        // Filtrar productos según búsqueda
+        final filteredProducts = _searchQuery.isEmpty
+            ? state.product!.product!
+            : state.product!.product!
+                .where((product) =>
+                    product.name!.toLowerCase().contains(_searchQuery))
+                .toList();
+
         // Mostrar productos
-        if (state.product!.product != null &&
-            state.product!.product!.isNotEmpty) {
+        if (filteredProducts.isNotEmpty) {
           return Flexible(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -177,7 +206,7 @@ class ProductListState extends State<ProductList> {
                         crossAxisCount;
 
                 return GridView.builder(
-                  itemCount: state.product!.product!.length,
+                  itemCount: filteredProducts.length,
                   physics: const BouncingScrollPhysics(),
                   padding: EdgeInsets.zero,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -187,11 +216,20 @@ class ProductListState extends State<ProductList> {
                     mainAxisExtent: _calculateItemHeight(itemWidth),
                   ),
                   itemBuilder: (BuildContext context, int index) {
-                    final product = state.product!.product![index];
+                    final product = filteredProducts[index];
                     return _buildProductCard(product, stateCart, context);
                   },
                 );
               },
+            ),
+          );
+        }
+
+        // Si no hay resultados de búsqueda
+        if (_searchQuery.isNotEmpty && filteredProducts.isEmpty) {
+          return const Expanded(
+            child: Center(
+              child: Text('No se encontraron productos con ese nombre'),
             ),
           );
         }

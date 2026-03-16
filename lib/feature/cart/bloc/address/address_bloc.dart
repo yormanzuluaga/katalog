@@ -1,6 +1,5 @@
 import 'package:api_helper/api_helper.dart';
 import 'package:api_repository/api_repository.dart';
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:talentpitch_test/app/bloc/app_bloc.dart';

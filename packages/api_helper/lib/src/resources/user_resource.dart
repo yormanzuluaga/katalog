@@ -7,6 +7,52 @@ class UserResource {
 
   final ApiClient _apiClient;
 
+  Future<(ApiException?, UserModel?)> createUser({
+    required Map<String, dynamic> data,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      print('Creating user with data: $data'); // Debug log
+
+      final response = await _apiClient.post(
+        'api/user',
+        body: jsonEncode(data),
+        modifiedHeaders: headers,
+      );
+
+      print('Response status: ${response.statusCode}'); // Debug log
+      print('Response body: ${response.body}'); // Debug log
+
+      if (response.statusCode == HttpStatus.ok ||
+          response.statusCode == HttpStatus.created) {
+        final userModel = UserModel.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>,
+        );
+        return Future.value((null, userModel));
+      } else {
+        return Future.value(
+          (
+            ApiException(
+              response.statusCode,
+              response.body,
+            ),
+            null,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      print('Error in createUser: $e'); // Debug log
+      print('StackTrace: $stackTrace'); // Debug log
+      return Future.value((
+        ApiException(
+          500,
+          'Error al crear usuario: $e',
+        ),
+        null
+      ));
+    }
+  }
+
   Future<(ApiException?, UpdateUserResponse?)> updateUser({
     required String userId,
     Map<String, String>? headers,

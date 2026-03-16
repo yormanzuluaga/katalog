@@ -11,6 +11,7 @@ import 'package:talentpitch_test/feature/catalog/bloc/catalog/catalog_bloc.dart'
 import 'package:talentpitch_test/feature/catalog/view/create_catalog_dialog.dart';
 import 'package:talentpitch_test/feature/home/bloc/home_bloc.dart';
 import 'package:talentpitch_ui/talentpitch_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeMobile extends StatefulWidget {
   const HomeMobile({
@@ -90,7 +91,7 @@ class _HomeMobileState extends State<HomeMobile> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: InkWell(
-              onTap: () {},
+              onTap: () => _showHelpDialog(context),
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.white,
@@ -378,6 +379,99 @@ class _HomeMobileState extends State<HomeMobile> {
         child: const CreateCatalogDialog(),
       ),
     );
+  }
+
+  void _showHelpDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              FaIcon(
+                FontAwesomeIcons.headset,
+                color: AppColors.primaryMain,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                '¿Necesitas ayuda?',
+                style: APTextStyle.textLG.bold.copyWith(
+                  color: AppColors.primaryMain,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Estamos aquí para ayudarte. ¿Deseas contactarnos por WhatsApp?',
+            style: APTextStyle.textMD.medium.copyWith(
+              color: AppColors.gray80,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancelar',
+                style: APTextStyle.textMD.medium.copyWith(
+                  color: AppColors.gray80,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _openWhatsApp();
+              },
+              icon: const FaIcon(
+                FontAwesomeIcons.whatsapp,
+                size: 20,
+              ),
+              label: Text(
+                'Contactar',
+                style: APTextStyle.textMD.semibold.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF25D366),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _openWhatsApp() async {
+    final phoneNumber = '+573017726637';
+    final message = 'Hola, necesito ayuda con la aplicación';
+    final url = Uri.parse(
+        'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        // Si no se puede abrir WhatsApp, mostrar un mensaje de error
+        debugPrint('No se puede abrir WhatsApp');
+      }
+    } catch (e) {
+      debugPrint('Error al abrir WhatsApp: $e');
+    }
   }
 
   List<IconData> listOfIcons = [

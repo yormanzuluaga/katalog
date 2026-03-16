@@ -29,8 +29,10 @@ class AddToCatalogButton extends StatelessWidget {
     // Primero cargar los catálogos
     context.read<CatalogBloc>().add(const LoadMyCatalogs());
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (dialogContext) => BlocProvider.value(
         value: context.read<CatalogBloc>(),
         child: CatalogSelectorDialog(product: product),

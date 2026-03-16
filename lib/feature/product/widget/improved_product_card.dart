@@ -127,14 +127,20 @@ class ImprovedProductCard extends StatelessWidget {
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: 4),
-                      Text(
-                        'Marca: $subtitle',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Marca: $subtitle',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     const Spacer(),
@@ -143,12 +149,21 @@ class ImprovedProductCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: isWholesale
+                            ? Colors.orange.withOpacity(0.15)
+                            : Colors.green.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
+                        border: isWholesale
+                            ? Border.all(
+                                color: Colors.orange.withOpacity(0.4),
+                                width: 1.5,
+                              )
+                            : null,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Precio
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -169,93 +184,91 @@ class ImprovedProductCard extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Flexible(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.attach_money,
-                                      size: 14,
-                                      color: Colors.green[700],
-                                    ),
-                                    Flexible(
-                                      child: Text(
-                                        isWholesale ? 'Ganancia' : 'Ganancia',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.green[700],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    if (isWholesale) ...[
-                                      const SizedBox(width: 2),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 3, vertical: 1),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange,
-                                          borderRadius:
-                                              BorderRadius.circular(3),
-                                        ),
-                                        child: const Text(
-                                          'x6+',
-                                          style: TextStyle(
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
+                          const SizedBox(height: 6),
+                          const Divider(height: 1, thickness: 0.5),
+                          const SizedBox(height: 6),
+                          // Ganancia - Layout horizontal mejorado
+                          if (isWholesale && wholesaleCommission != null) ...[
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.trending_up,
+                                  size: 13,
+                                  color: Colors.orange[700],
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              if (isWholesale &&
-                                  wholesaleCommission != null) ...[
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '\$${_formatNumber(commission.toInt())}',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.grey[600],
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                        ),
-                                      ),
-                                      Text(
-                                        '\$${_formatNumber(wholesaleCommission!.toInt())}',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green[700],
-                                        ),
-                                      ),
-                                    ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Por Mayor',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.orange[700],
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ] else
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
                                 Text(
                                   '\$${_formatNumber(commission.toInt())}',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey[600],
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  size: 14,
+                                  color: Colors.orange[600],
+                                ),
+                                Text(
+                                  '\$${_formatNumber(wholesaleCommission!.toInt())}',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.attach_money,
+                                      size: 13,
+                                      color: Colors.green[700],
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      'Ganancia',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.green[700],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '\$${_formatNumber(commission.toInt())}',
+                                  style: TextStyle(
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.green[700],
                                   ),
                                 ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

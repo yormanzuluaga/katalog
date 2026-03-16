@@ -16,37 +16,13 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _whatsappController = TextEditingController();
-  final _primaryColorController = TextEditingController(text: '#FF69B4');
-  final _secondaryColorController = TextEditingController(text: '#8B008B');
-  final _logoUrlController = TextEditingController();
 
-  bool _isPublic = true;
-  bool _showPrices = true;
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Auto-populate contact info from UserStore
-    final userStore = UserStore.instance;
-    _phoneController.text = userStore.mobile;
-    _emailController.text = userStore.email;
-    _whatsappController.text = userStore.mobile; // WhatsApp uses same as phone
-  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
-    _whatsappController.dispose();
-    _primaryColorController.dispose();
-    _secondaryColorController.dispose();
-    _logoUrlController.dispose();
     super.dispose();
   }
 
@@ -65,7 +41,7 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
         });
       },
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.9,
+        height: MediaQuery.of(context).size.height * 0.5,
         decoration: const BoxDecoration(
           color: AppColors.whiteTechnical,
           borderRadius: BorderRadius.only(
@@ -109,8 +85,6 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Información básica
-                      _buildSectionTitle('Información Básica'),
-                      const SizedBox(height: 16),
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
@@ -140,7 +114,8 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
                             borderSide: BorderSide.none,
                           ),
                           fillColor: AppColors.whitePure,
-                          prefixIcon: Icon(Icons.book),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.book),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -179,249 +154,10 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
                             borderSide: BorderSide.none,
                           ),
                           fillColor: AppColors.whitePure,
-                          prefixIcon: Icon(Icons.description),
+                          filled: true,
+                          prefixIcon: const Icon(Icons.description),
                         ),
                         maxLines: 3,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Configuración
-                      _buildSectionTitle('Configuración'),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: const Text('Catálogo público'),
-                        subtitle:
-                            const Text('Cualquiera puede ver tu catálogo'),
-                        value: _isPublic,
-                        onChanged: (value) => setState(() => _isPublic = value),
-                      ),
-                      SwitchListTile(
-                        title: const Text('Mostrar precios'),
-                        subtitle: const Text('Los clientes verán los precios'),
-                        value: _showPrices,
-                        onChanged: (value) =>
-                            setState(() => _showPrices = value),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Información de contacto
-                      _buildSectionTitle('Información de Contacto'),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(
-                          labelText: 'Teléfono',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          fillColor: AppColors.whitePure,
-                          prefixIcon: Icon(Icons.phone),
-                          hintText: '+57 300 123 4567',
-                        ),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          fillColor: AppColors.whitePure,
-                          prefixIcon: Icon(Icons.email),
-                          hintText: 'ventas@ejemplo.com',
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _whatsappController,
-                        decoration: InputDecoration(
-                          labelText: 'WhatsApp',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          fillColor: AppColors.whitePure,
-                          prefixIcon: Icon(Icons.chat),
-                          hintText: '+573001234567',
-                        ),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Personalización
-                      _buildSectionTitle('Personalización'),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _primaryColorController,
-                              decoration: InputDecoration(
-                                labelText: 'Color primario',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                fillColor: AppColors.whitePure,
-                                hintText: '#FF69B4',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _secondaryColorController,
-                              decoration: InputDecoration(
-                                labelText: 'Color secundario',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                fillColor: AppColors.whitePure,
-                                hintText: '#8B008B',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _logoUrlController,
-                        decoration: InputDecoration(
-                          labelText: 'URL del logo',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          errorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          disabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedErrorBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          fillColor: AppColors.whitePure,
-                          prefixIcon: Icon(Icons.image),
-                          hintText: 'https://ejemplo.com/logo.png',
-                        ),
                       ),
                       const SizedBox(height: 32),
                     ],
@@ -466,21 +202,13 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
-  }
-
   void _createCatalog() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    // Obtener datos del usuario almacenados
+    final userStore = UserStore.instance;
 
     final request = CreateCatalogRequest(
       name: _nameController.text.trim(),
@@ -488,25 +216,17 @@ class _CreateCatalogDialogState extends State<CreateCatalogDialog> {
           ? null
           : _descriptionController.text.trim(),
       settings: CatalogSettings(
-        isPublic: _isPublic,
-        showPrices: _showPrices,
+        isPublic: true,
+        showPrices: true,
         theme: CatalogTheme(
-          primaryColor: _primaryColorController.text.trim(),
-          secondaryColor: _secondaryColorController.text.trim(),
-          logoUrl: _logoUrlController.text.trim().isEmpty
-              ? null
-              : _logoUrlController.text.trim(),
+          primaryColor: '#FF69B4',
+          secondaryColor: '#8B008B',
+          logoUrl: userStore.avatar.isNotEmpty ? userStore.avatar : null,
         ),
         contactInfo: ContactInfo(
-          phone: _phoneController.text.trim().isEmpty
-              ? null
-              : _phoneController.text.trim(),
-          email: _emailController.text.trim().isEmpty
-              ? null
-              : _emailController.text.trim(),
-          whatsapp: _whatsappController.text.trim().isEmpty
-              ? null
-              : _whatsappController.text.trim(),
+          phone: userStore.mobile.isNotEmpty ? userStore.mobile : null,
+          email: userStore.email.isNotEmpty ? userStore.email : null,
+          whatsapp: userStore.mobile.isNotEmpty ? userStore.mobile : null,
         ),
       ),
       products: [],
